@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card" style="max-width:480px">
+    <div class="auth-logo">📝</div>
+    <h1 class="auth-title">Create Account</h1>
+    <p class="auth-subtitle">Register for free AI legal guidance</p>
+
+    <form method="POST" action="{{ url_for('register') }}" autocomplete="off">
+      <div style="margin-bottom:.9rem">
+        <label class="form-label-custom">Full Name</label>
+        <input type="text" name="name" class="form-control-custom" placeholder="Enter your full name" required/>
+      </div>
+      <div style="margin-bottom:.9rem">
+        <label class="form-label-custom">Mobile Number (10 digits)</label>
+        <input type="tel" name="mobile" class="form-control-custom" placeholder="9876543210" maxlength="10" pattern="[0-9]{10}" required/>
+      </div>
+      <div style="margin-bottom:.9rem">
+        <label class="form-label-custom">Email Address</label>
+        <input type="email" name="email" class="form-control-custom" placeholder="yourname@email.com" required/>
+      </div>
+      <div style="margin-bottom:1.25rem">
+        <label class="form-label-custom">Password (min. 6 characters)</label>
+        <input type="password" name="password" class="form-control-custom" placeholder="Create a strong password" minlength="6" required/>
+      </div>
+
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:.85rem;margin-bottom:1.25rem">
+        <p style="font-size:.78rem;color:var(--accent)">
+          ⚠️ <strong>Note:</strong> Registration will be blocked if your name appears in serious criminal records.
+        </p>
+      </div>
+
+      <button type="submit" class="btn-primary-custom" style="width:100%;justify-content:center">
+        📝 Register
+      </button>
+    </form>
+
+    <div style="margin-top:1.25rem;text-align:center">
+      <p style="color:var(--text-muted);font-size:.85rem">
+        Already registered?
+        <a href="{{ url_for('login') }}" style="color:var(--primary-light);font-weight:600">Login here</a>
+      </p>
+    </div>
+    <p style="margin-top:1rem;font-size:.72rem;color:var(--text-muted);text-align:center;line-height:1.5">
+      This platform provides legal awareness only. It does not replace professional legal advice.
+    </p>
+  </div>
+</div>
+{% endblock %}

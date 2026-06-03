@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Evidence Manager{% endblock %}
+{% block content %}
+<h1 class="page-title">📁 Evidence Manager</h1>
+<p class="page-subtitle">Securely upload and manage evidence files — photos, PDFs, videos, and documents.</p>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start">
+
+  <!-- Upload + Gallery -->
+  <div>
+    <!-- Upload Zone -->
+    <div class="glass-card" style="margin-bottom:1.5rem">
+      <h3 class="section-title">📤 Upload Evidence</h3>
+      <form method="POST" action="{{ url_for('evidence') }}" enctype="multipart/form-data">
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-icon">📎</div>
+          <p style="font-weight:600;margin-bottom:.4rem;color:var(--text-primary)">Click or drag & drop files here</p>
+          <p style="font-size:.82rem;color:var(--text-muted)">Supports: JPG, PNG, PDF, MP4, DOC, DOCX, TXT (max 50MB)</p>
+          <div id="selectedFile" style="margin-top:.75rem;display:none">
+            <span class="badge-green" id="fileName">No file</span>
+          </div>
+        </div>
+        <input type="file" id="fileInput" name="file" style="display:none"
+               accept=".jpg,.jpeg,.png,.gif,.pdf,.mp4,.avi,.mov,.doc,.docx,.txt"
+               onchange="showSelected(this)"/>
+        <div style="margin-top:1rem;display:flex;gap:.75rem">
+          <button type="submit" class="btn-primary-custom" id="uploadBtn" disabled>
+            ⬆️ Upload Evidence
+          </button>
+          <button type="button" class="btn-outline-custom" onclick="clearUpload()">Clear</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Uploaded Files Gallery -->
+    <div class="glass-card">
+      <h3 class="section-title">🗂️ Uploaded Evidence ({{ uploads|length }} files)</h3>
+      {% if uploads %}
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+        {% for u in uploads %}
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:1rem;transition:all .2s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="text-align:center;font-size:2.2rem;margin-bottom:.75rem">
+            {% if u.file_type == 'image' %}🖼️
+            {% elif u.file_type == 'pdf' %}📄
+            {% elif u.file_type == 'video' %}🎬
+            {% else %}📝{% endif %}
+          </div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--text-primary);margin-bottom:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ u.original_name }}">
+            {{ u.original_name }}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem">
+            <span class="badge-{% if u.file_type=='image' %}blue{% elif u.file_type=='pdf' %}red{% elif u.file_type=='video' %}yellow{% else %}purple{% endif %}" style="font-size:.7rem;text-transform:capitalize">{{ u.file_type }}</span>
+            <span style="font-size:.72rem;color:var(--text-muted)">{{ "%.1f"|format(u.file_size/1024) }} KB</span>
+          </div>
+          <div style="font-size:.7rem;color:var(--text-muted);margin-top:.35rem">{{ u.uploaded_at[:16] }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted)">
+        <div style="font-size:3rem;margin-bottom:.75rem">📂</div>
+        <p style="font-weight:600;margin-bottom:.4rem">No evidence uploaded yet</p>
+        <p style="font-size:.85rem">Upload photos, PDFs, or videos as evidence for your case.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sidebar Checklist -->
+  <div style="display:flex;flex-direction:column;gap:1rem">
+    <div class="glass-card glass-card-purple">
+      <h3 class="section-title">✅ Evidence Checklist</h3>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        {% for item in [
+          ('📸','Photographs of scene or injuries','critical'),
+          ('📹','Video recordings of incident','critical'),
+          ('📄','Copy of FIR (if filed)','critical'),
+          ('🏥','Medical examination report','high'),
+          ('💬','Screenshots of chats/messages','high'),
+          ('📱','Call records or recordings','medium'),
+          ('🧾','Financial transaction proof','medium'),
+          ('👁️','Witness contact details','high'),
+          ('📰','News reports (if any)','low'),
+          ('📝','Your written statement','critical'),
+        ] %}
+        <div style="display:flex;gap:.65rem;align-items:flex-start;padding:.5rem;background:rgba(255,255,255,0.03);border-radius:8px">
+          <span style="font-size:1rem">{{ item[0] }}</span>
+          <div style="flex:1">
+            <div style="font-size:.8rem;color:var(--text-secondary)">{{ item[1] }}</div>
+            <span class="badge-{% if item[2]=='critical' %}red{% elif item[2]=='high' %}yellow{% else %}green{% endif %}" style="font-size:.65rem;margin-top:.2rem;display:inline-block">{{ item[2].upper() }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <h3 class="section-title">⚠️ Evidence Tips</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:.6rem">
+        {% for tip in [
+          'Preserve originals — never alter evidence',
+          'Take photos before cleaning any scene',
+          'Screenshot digital evidence with timestamps',
+          'Store backup copies in cloud or email',
+          'Share with your lawyer before court',
+        ] %}
+        <li style="font-size:.8rem;color:var(--text-muted);display:flex;gap:.4rem">
+          <span style="color:var(--accent)">→</span> {{ tip }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showSelected(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    document.getElementById('selectedFile').style.display = 'block';
+    document.getElementById('fileName').textContent = `📎 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    document.getElementById('uploadBtn').disabled = false;
+  }
+}
+function clearUpload() {
+  document.getElementById('fileInput').value = '';
+  document.getElementById('selectedFile').style.display = 'none';
+  document.getElementById('uploadBtn').disabled = true;
+}
+
+// Drag and drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const fi = document.getElementById('fileInput');
+  fi.files = e.dataTransfer.files;
+  showSelected(fi);
+});
+</script>
+{% endblock %}

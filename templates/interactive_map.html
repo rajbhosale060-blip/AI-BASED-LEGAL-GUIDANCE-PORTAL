@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maharashtra Interactive District Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0a0f1e;--panel:#141c2f;--border:#1e2d4a;--accent:#f59e0b;--accent2:#6366f1;--text:#e2e8f0;--text2:#94a3b8;--muted:#64748b;--fill:#1e1b4b;--hover:#4338ca;--selected:#7c3aed;--stroke:#312e81;--glow:rgba(99,102,241,0.4)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
+    header{background:linear-gradient(135deg,#0a0f1e 0%,#0d1a33 60%,#0f1f3d 100%);border-bottom:2px solid var(--accent);padding:20px 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+    .badge{width:48px;height:48px;background:var(--accent);clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    header h1{font-size:24px;font-weight:700;letter-spacing:2px;line-height:1.1}
+    header h1 span{display:block;font-size:12px;color:var(--accent);letter-spacing:4px;font-family:'IBM Plex Mono',monospace;font-weight:500}
+    .layout{display:flex;height:calc(100vh - 80px)}
+    .sidebar{width:340px;background:var(--panel);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+    .search-box{padding:16px;border-bottom:1px solid var(--border)}
+    .search-box input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px 10px 36px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+    .search-box input:focus{border-color:var(--accent2)}
+    .search-box input::placeholder{color:var(--muted)}
+    .search-wrap{position:relative}
+    .search-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.5}
+    .region-filters{padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--border)}
+    .region-btn{background:var(--bg);border:1px solid var(--border);color:var(--text2);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;padding:5px 10px;border-radius:4px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+    .region-btn:hover,.region-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,.08)}
+    .district-list{flex:1;overflow-y:auto;padding:8px}
+    .district-item{padding:10px 14px;border-radius:6px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;margin-bottom:2px}
+    .district-item:hover{background:rgba(99,102,241,.1)}
+    .district-item.active{background:rgba(99,102,241,.2);border-left:3px solid var(--accent2)}
+    .district-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .district-item .name{font-size:14px;font-weight:600;letter-spacing:.5px}
+    .district-item .code{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
+    .map-container{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,#0f172a 0%,#0a0f1e 100%)}
+    .map-controls{position:absolute;top:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:10}
+    .map-btn{width:36px;height:36px;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .map-btn:hover{background:var(--accent2);border-color:var(--accent2)}
+    #mapSvg{width:100%;height:100%;cursor:grab}
+    #mapSvg:active{cursor:grabbing}
+    #mapSvg path{fill:var(--fill);stroke:var(--stroke);stroke-width:1.5;cursor:pointer;transition:fill .25s,filter .25s}
+    #mapSvg path:hover{fill:var(--hover);filter:drop-shadow(0 0 8px var(--glow))}
+    #mapSvg path.selected{fill:var(--selected);filter:drop-shadow(0 0 12px var(--glow));animation:pulse-glow 2s ease-in-out infinite}
+    @keyframes pulse-glow{0%,100%{filter:drop-shadow(0 0 12px var(--glow))}50%{filter:drop-shadow(0 0 24px rgba(124,58,237,.6))}}
+    .tooltip{position:fixed;background:var(--panel);border:1px solid var(--accent2);border-radius:8px;padding:14px 18px;pointer-events:none;z-index:1000;opacity:0;transition:opacity .15s;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+    .tooltip.show{opacity:1}
+    .tooltip h3{font-size:16px;font-weight:700;letter-spacing:1px;margin-bottom:4px;color:var(--text)}
+    .tooltip .t-region{font-size:11px;color:var(--accent);font-family:'IBM Plex Mono',monospace;letter-spacing:2px;text-transform:uppercase}
+    .tooltip .t-row{display:flex;justify-content:space-between;margin-top:6px;font-size:12px}
+    .tooltip .t-label{color:var(--muted)}
+    .tooltip .t-val{color:var(--text2);font-family:'IBM Plex Mono',monospace}
+    .info-panel{position:absolute;bottom:16px;left:16px;right:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 20px;display:none;z-index:10}
+    .info-panel.show{display:block;animation:slideUp .3s ease}
+    @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .info-panel h2{font-size:20px;font-weight:700;letter-spacing:1px}
+    .info-panel .close-btn{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+    .info-panel .close-btn:hover{color:var(--text)}
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:10px}
+    .info-cell{background:var(--bg);border-radius:6px;padding:10px 12px}
+    .info-cell .label{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+    .info-cell .value{font-size:14px;font-weight:600;margin-top:2px}
+    .legend{position:absolute;bottom:16px;right:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 16px;z-index:10}
+    .legend h4{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-family:'IBM Plex Mono',monospace}
+    .legend-item{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
+    .legend-item .swatch{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.1)}
+    .count-info{padding:12px 16px;border-top:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-align:center}
+    .count-info span{color:var(--accent2)}
+    @media(max-width:768px){.sidebar{width:100%;height:auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--border)}.layout{flex-direction:column}.legend{display:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge">🗺️</div>
+    <div><h1><span>MAHARASHTRA STATE</span>Interactive District Map</h1></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="search-box"><div class="search-wrap"><input type="text" id="searchInput" placeholder="Search districts…" oninput="filterDistricts()"></div></div>
+      <div class="region-filters">
+        <button class="region-btn active" onclick="setRegion('all',this)">All</button>
+        <button class="region-btn" onclick="setRegion('konkan',this)">Konkan</button>
+        <button class="region-btn" onclick="setRegion('nashik',this)">Nashik</button>
+        <button class="region-btn" onclick="setRegion('pune',this)">Pune</button>
+        <button class="region-btn" onclick="setRegion('marathwada',this)">Marathwada</button>
+        <button class="region-btn" onclick="setRegion('amravati',this)">Amravati</button>
+        <button class="region-btn" onclick="setRegion('nagpur',this)">Nagpur</button>
+      </div>
+      <div class="district-list" id="districtList"></div>
+      <div class="count-info">Showing <span id="countSpan">36</span> of 36 districts</div>
+    </aside>
+    <main class="map-container" id="mapContainer">
+      <div class="map-controls">
+        <button class="map-btn" onclick="zoomIn()" title="Zoom In">+</button>
+        <button class="map-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+        <button class="map-btn" onclick="resetView()" title="Reset">⟲</button>
+      </div>
+      <svg id="mapSvg" viewBox="1132 -929.7 3105.8 2453" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="tooltip" id="tooltip"></div>
+      <div class="info-panel" id="infoPanel">
+        <button class="close-btn" onclick="closeInfo()">✕</button>
+        <h2 id="infoPanelTitle"></h2>
+        <div class="info-grid" id="infoPanelGrid"></div>
+      </div>
+      <div class="legend">
+        <h4>Legend</h4>
+        <div class="legend-item"><div class="swatch" style="background:#1e1b4b"></div>Default</div>
+        <div class="legend-item"><div class="swatch" style="background:#4338ca"></div>Hover</div>
+        <div class="legend-item"><div class="swatch" style="background:#7c3aed"></div>Selected</div>
+      </div>
+    </main>
+  </div>
+  <script src="/static/js/maharashtra_data.js"></script>
+  <script>
+    const DISTRICT_DATA={
+      SOL:{name:"Solapur",region:"pune",population:"4.3M",hq:"Solapur",area:"14895 sq km"},
+      AHM:{name:"Ahmednagar",region:"nashik",population:"4.5M",hq:"Ahmednagar",area:"17048 sq km"},
+      RAI:{name:"Raigad",region:"konkan",population:"2.6M",hq:"Alibag",area:"7148 sq km"},
+      JLN:{name:"Jalna",region:"marathwada",population:"1.9M",hq:"Jalna",area:"7718 sq km"},
+      GON:{name:"Gondia",region:"nagpur",population:"1.3M",hq:"Gondia",area:"5431 sq km"},
+      NAN:{name:"Nanded",region:"marathwada",population:"3.4M",hq:"Nanded",area:"10528 sq km"},
+      WAR:{name:"Wardha",region:"nagpur",population:"1.3M",hq:"Wardha",area:"6309 sq km"},
+      KOL:{name:"Kolhapur",region:"pune",population:"3.9M",hq:"Kolhapur",area:"7685 sq km"},
+      BUL:{name:"Buldhana",region:"amravati",population:"2.6M",hq:"Buldhana",area:"9661 sq km"},
+      CHA:{name:"Chandrapur",region:"nagpur",population:"2.2M",hq:"Chandrapur",area:"11443 sq km"},
+      SIN:{name:"Sindhudurg",region:"konkan",population:"0.8M",hq:"Oros",area:"5207 sq km"},
+      JAL:{name:"Jalgaon",region:"nashik",population:"4.2M",hq:"Jalgaon",area:"11765 sq km"},
+      AUR:{name:"Chh. Sambhajinagar",region:"marathwada",population:"3.7M",hq:"Chh. Sambhajinagar",area:"10100 sq km"},
+      WAS:{name:"Washim",region:"amravati",population:"1.2M",hq:"Washim",area:"5150 sq km"},
+      NAG:{name:"Nagpur",region:"nagpur",population:"4.7M",hq:"Nagpur",area:"9892 sq km"},
+      BEE:{name:"Beed",region:"marathwada",population:"2.6M",hq:"Beed",area:"10693 sq km"},
+      GAD:{name:"Gadchiroli",region:"nagpur",population:"1.1M",hq:"Gadchiroli",area:"14412 sq km"},
+      MUM:{name:"Mumbai City",region:"konkan",population:"3.1M",hq:"Mumbai",area:"157 sq km"},
+      USM:{name:"Dharashiv",region:"marathwada",population:"1.7M",hq:"Dharashiv",area:"7569 sq km"},
+      THA:{name:"Thane",region:"konkan",population:"11.1M",hq:"Thane",area:"4214 sq km"},
+      AMA:{name:"Amravati",region:"amravati",population:"2.9M",hq:"Amravati",area:"12235 sq km"},
+      YAV:{name:"Yavatmal",region:"amravati",population:"2.8M",hq:"Yavatmal",area:"13582 sq km"},
+      NDB:{name:"Nandurbar",region:"nashik",population:"1.6M",hq:"Nandurbar",area:"5955 sq km"},
+      AKO:{name:"Akola",region:"amravati",population:"1.8M",hq:"Akola",area:"5673 sq km"},
+      PUN:{name:"Pune",region:"pune",population:"9.4M",hq:"Pune",area:"15643 sq km"},
+      LAT:{name:"Latur",region:"marathwada",population:"2.5M",hq:"Latur",area:"7157 sq km"},
+      HIN:{name:"Hingoli",region:"marathwada",population:"1.2M",hq:"Hingoli",area:"4526 sq km"},
+      RAT:{name:"Ratnagiri",region:"konkan",population:"1.6M",hq:"Ratnagiri",area:"8208 sq km"},
+      NAS:{name:"Nashik",region:"nashik",population:"6.1M",hq:"Nashik",area:"15582 sq km"},
+      SAT:{name:"Satara",region:"pune",population:"3.0M",hq:"Satara",area:"10480 sq km"},
+      PAR:{name:"Parbhani",region:"marathwada",population:"1.8M",hq:"Parbhani",area:"6511 sq km"},
+      BHA:{name:"Bhandara",region:"nagpur",population:"1.2M",hq:"Bhandara",area:"3717 sq km"},
+      SAN:{name:"Sangli",region:"pune",population:"2.8M",hq:"Sangli",area:"8572 sq km"},
+      PAL:{name:"Palghar",region:"konkan",population:"2.9M",hq:"Palghar",area:"5344 sq km"},
+      DHU:{name:"Dhule",region:"nashik",population:"2.1M",hq:"Dhule",area:"7195 sq km"}
+    };
+    const REGION_COLORS={konkan:"#0ea5e9",nashik:"#f59e0b",pune:"#10b981",marathwada:"#f43f5e",amravati:"#a855f7",nagpur:"#6366f1"};
+    let selectedDistrict=null,currentRegion='all',scale=1,panX=0,panY=0,isPanning=false,startX,startY;
+    const svg=document.getElementById('mapSvg'),tooltip=document.getElementById('tooltip'),mapContainer=document.getElementById('mapContainer');
+
+    function init(){
+      if(typeof MAHARASHTRA_PATHS==='undefined'){console.error('Map data not loaded');return}
+      const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+      g.id="mapGroup";
+      DISTRICT_CODES.forEach(code=>{
+        const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+        path.setAttribute("d",MAHARASHTRA_PATHS[code]);
+        path.setAttribute("id",code);
+        path.addEventListener("mouseenter",e=>showTooltip(e,code));
+        path.addEventListener("mousemove",e=>moveTooltip(e));
+        path.addEventListener("mouseleave",hideTooltip);
+        path.addEventListener("click",()=>selectDistrict(code));
+        g.appendChild(path);
+      });
+      svg.appendChild(g);
+      buildSidebar();
+      setupPanZoom();
+    }
+
+    function buildSidebar(){
+      const list=document.getElementById('districtList');
+      const sorted=Object.entries(DISTRICT_DATA).sort((a,b)=>a[1].name.localeCompare(b[1].name));
+      let html='';
+      sorted.forEach(([code,d])=>{
+        const color=REGION_COLORS[d.region]||'#6366f1';
+        html+=`<div class="district-item" data-code="${code}" data-region="${d.region}" data-name="${d.name.toLowerCase()}" onclick="selectDistrict('${code}')">
+          <div class="dot" style="background:${color}"></div>
+          <span class="name">${d.name}</span>
+          <span class="code">${code}</span>
+        </div>`;
+      });
+      list.innerHTML=html;
+    }
+
+    function filterDistricts(){
+      const q=document.getElementById('searchInput').value.toLowerCase();
+      let count=0;
+      document.querySelectorAll('.district-item').forEach(item=>{
+        const name=item.dataset.name,region=item.dataset.region;
+        const matchSearch=!q||name.includes(q);
+        const matchRegion=currentRegion==='all'||region===currentRegion;
+        const show=matchSearch&&matchRegion;
+        item.style.display=show?'':'none';
+        if(show)count++;
+        const path=document.getElementById(item.dataset.code);
+        if(path)path.style.opacity=show?1:0.15;
+      });
+      document.getElementById('countSpan').textContent=count;
+    }
+
+    function setRegion(region,btn){
+      currentRegion=region;
+      document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      filterDistricts();
+    }
+
+    function selectDistrict(code){
+      document.querySelectorAll('#mapSvg path').forEach(p=>p.classList.remove('selected'));
+      document.querySelectorAll('.district-item').forEach(i=>i.classList.remove('active'));
+      if(selectedDistrict===code){selectedDistrict=null;closeInfo();return}
+      selectedDistrict=code;
+      const path=document.getElementById(code);
+      if(path)path.classList.add('selected');
+      const item=document.querySelector(`.district-item[data-code="${code}"]`);
+      if(item){item.classList.add('active');item.scrollIntoView({behavior:'smooth',block:'nearest'})}
+      showInfo(code);
+    }
+
+    function showTooltip(e,code){
+      const d=DISTRICT_DATA[code];if(!d)return;
+      const color=REGION_COLORS[d.region]||'#6366f1';
+      tooltip.innerHTML=`<h3>${d.name}</h3><div class="t-region">${d.region} Region</div>
+        <div class="t-row"><span class="t-label">Population</span><span class="t-val">${d.population}</span></div>
+        <div class="t-row"><span class="t-label">HQ</span><span class="t-val">${d.hq}</span></div>
+        <div class="t-row"><span class="t-label">Area</span><span class="t-val">${d.area}</span></div>`;
+      tooltip.classList.add('show');
+      moveTooltip(e);
+    }
+
+    function moveTooltip(e){
+      const x=e.clientX+16,y=e.clientY-10;
+      tooltip.style.left=Math.min(x,window.innerWidth-240)+'px';
+      tooltip.style.top=Math.min(y,window.innerHeight-160)+'px';
+    }
+
+    function hideTooltip(){tooltip.classList.remove('show')}
+
+    function showInfo(code){
+      const d=DISTRICT_DATA[code];if(!d)return;
+      document.getElementById('infoPanelTitle').textContent=d.name+' District';
+      const color=REGION_COLORS[d.region]||'#6366f1';
+      document.getElementById('infoPanelGrid').innerHTML=`
+        <div class="info-cell"><div class="label">Region</div><div class="value" style="color:${color}">${d.region.charAt(0).toUpperCase()+d.region.slice(1)}</div></div>
+        <div class="info-cell"><div class="label">Population</div><div class="value">${d.population}</div></div>
+        <div class="info-cell"><div class="label">Headquarters</div><div class="value">${d.hq}</div></div>
+        <div class="info-cell"><div class="label">Area</div><div class="value">${d.area}</div></div>
+        <div class="info-cell"><div class="label">Code</div><div class="value">${code}</div></div>`;
+      document.getElementById('infoPanel').classList.add('show');
+    }
+
+    function closeInfo(){document.getElementById('infoPanel').classList.remove('show')}
+
+    function setupPanZoom(){
+      const g=document.getElementById('mapGroup');
+      mapContainer.addEventListener('wheel',e=>{
+        e.preventDefault();
+        const delta=e.deltaY>0?0.9:1.1;
+        scale=Math.max(0.5,Math.min(5,scale*delta));
+        applyTransform();
+      });
+      mapContainer.addEventListener('mousedown',e=>{
+        if(e.target.tagName==='path')return;
+        isPanning=true;startX=e.clientX-panX;startY=e.clientY-panY;
+        svg.style.cursor='grabbing';
+      });
+      window.addEventListener('mousemove',e=>{
+        if(!isPanning)return;
+        panX=e.clientX-startX;panY=e.clientY-startY;
+        applyTransform();
+      });
+      window.addEventListener('mouseup',()=>{isPanning=false;svg.style.cursor='grab'});
+      // Touch support
+      let lastDist=0;
+      mapContainer.addEventListener('touchstart',e=>{
+        if(e.touches.length===1){isPanning=true;startX=e.touches[0].clientX-panX;startY=e.touches[0].clientY-panY}
+        if(e.touches.length===2){lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)}
+      });
+      mapContainer.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        if(e.touches.length===1&&isPanning){panX=e.touches[0].clientX-startX;panY=e.touches[0].clientY-startY;applyTransform()}
+        if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);scale=Math.max(.5,Math.min(5,scale*(d/lastDist)));lastDist=d;applyTransform()}
+      },{passive:false});
+      mapContainer.addEventListener('touchend',()=>{isPanning=false});
+    }
+
+    function applyTransform(){
+      const g=document.getElementById('mapGroup');
+      if(g)g.setAttribute('transform',`translate(${panX},${panY}) scale(${scale})`);
+    }
+
+    function zoomIn(){scale=Math.min(5,scale*1.3);applyTransform()}
+    function zoomOut(){scale=Math.max(.5,scale/1.3);applyTransform()}
+    function resetView(){scale=1;panX=0;panY=0;applyTransform()}
+
+    init();
+  </script>
+</body>
+</html>

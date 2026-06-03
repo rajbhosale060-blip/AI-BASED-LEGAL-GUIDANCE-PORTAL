@@ -1,0 +1,505 @@
+{% extends "base.html" %}
+{% block title %}AI Bail Eligibility Checker{% endblock %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #7c3aed;
+        --primary-glow: rgba(124, 58, 237, 0.4);
+        --bg-panel: rgba(30, 41, 59, 0.6);
+        --border-glass: rgba(148, 163, 184, 0.15);
+        --text-light: #f8fafc;
+        --text-muted: #94a3b8;
+    }
+
+    .bail-header {
+        margin-bottom: 2rem;
+    }
+
+    .bail-header a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.3s;
+    }
+
+    .bail-header a:hover {
+        color: var(--text-light);
+    }
+
+    /* Layout */
+    .bail-layout {
+        display: flex;
+        gap: 2rem;
+        align-items: stretch;
+    }
+
+    .panel-left {
+        flex: 1;
+        min-width: 350px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel-right {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+    }
+
+    @media (max-width: 900px) {
+        .bail-layout {
+            flex-direction: column;
+        }
+        .panel-right {
+            min-height: 500px;
+        }
+    }
+
+    /* Cards */
+    .glass-box {
+        background: var(--bg-panel);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border-glass);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Forms */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-row .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .custom-input, .custom-select {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-glass);
+        color: var(--text-light);
+        border-radius: 12px;
+        padding: 0.9rem 1rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    textarea.custom-input {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .custom-input:focus, .custom-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+        background: rgba(15, 23, 42, 0.95);
+    }
+
+    /* Button */
+    .btn-analyze {
+        margin-top: auto;
+        background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+        border: none;
+        color: white;
+        font-weight: 700;
+        padding: 1.1rem;
+        border-radius: 14px;
+        width: 100%;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+        font-size: 1rem;
+    }
+
+    .btn-analyze:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px var(--primary-glow);
+    }
+
+    .btn-analyze:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Output States */
+    .state-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .empty-state, .loading-state {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .empty-state h3, .loading-state h3 {
+        margin: 1rem 0 0.5rem;
+        color: var(--text-light);
+    }
+
+    .empty-state p, .loading-state p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        max-width: 280px;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Results */
+    .results-state {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .res-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-glass);
+        margin-bottom: 1.5rem;
+    }
+
+    .res-header h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.4rem;
+        color: var(--text-light);
+    }
+
+    .res-header small {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-primary { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border: 1px solid rgba(124, 58, 237, 0.3); }
+    .badge-high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-med { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-low { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .res-section {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-glass);
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .res-section.highlight {
+        border-left: 4px solid var(--primary-color);
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    .res-label {
+        display: block;
+        color: var(--primary-color);
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .res-text {
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #e2e8f0;
+    }
+
+    .res-text-bold {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .disclaimer-box {
+        margin-top: auto;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    /* Spinner */
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(124, 58, 237, 0.2);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="bail-header">
+    <a href="{{ url_for('dashboard') }}">
+        <span style="margin-right: 0.5rem;">←</span> Back to Dashboard
+    </a>
+</div>
+
+<div class="bail-layout">
+    <!-- Input Panel -->
+    <div class="panel-left">
+        <div class="glass-box">
+            <div style="margin-bottom: 2rem;">
+                <span class="badge badge-primary" style="display:inline-block; margin-bottom:1rem;">⚖️ AI Legal Engine</span>
+                <h2 style="margin:0 0 0.5rem 0; font-size:1.8rem;">Bail Analyzer</h2>
+                <p style="color:var(--text-muted); font-size:0.9rem; margin:0;">Get immediate, accurate legal awareness on bail chances.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Detailed Case Summary</label>
+                <textarea id="bailSummary" class="custom-input" placeholder="Describe the incident, allegations, and your role..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">IPC Sections</label>
+                    <input type="text" id="bailSections" class="custom-input" placeholder="e.g. 302, 420">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nature of Crime</label>
+                    <input type="text" id="bailNature" class="custom-input" placeholder="Violent, Financial...">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Evidence</label>
+                    <select id="bailEvidence" class="custom-select">
+                        <option value="weak">Weak</option>
+                        <option value="moderate" selected>Moderate</option>
+                        <option value="strong">Strong</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prior Record</label>
+                    <select id="bailRecord" class="custom-select">
+                        <option value="no" selected>No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Arrest Status</label>
+                <select id="bailStatus" class="custom-select">
+                    <option value="not arrested">Not Arrested (Pre-arrest)</option>
+                    <option value="arrested">Under Custody (Post-arrest)</option>
+                    <option value="interim protection needed">Interim Protection Required</option>
+                </select>
+            </div>
+
+            <button id="btnAnalyze" class="btn-analyze">
+                Analyze Bail Eligibility
+            </button>
+        </div>
+    </div>
+
+    <!-- Output Panel -->
+    <div class="panel-right">
+        <div class="glass-box state-container">
+            
+            <!-- Empty State -->
+            <div id="stateEmpty" class="empty-state">
+                <div style="font-size: 4rem; opacity: 0.15;">📜</div>
+                <h3>Awaiting Input</h3>
+                <p>Fill out the form on the left to generate a structured AI legal report.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="stateLoading" class="loading-state" style="display: none;">
+                <div class="spinner"></div>
+                <h3>Analyzing Case...</h3>
+                <p>Consulting legal database and assessing precedents.</p>
+            </div>
+
+            <!-- Results State -->
+            <div id="stateResults" class="results-state">
+                <div class="res-header" style="animation: slideUp 0.3s ease forwards;">
+                    <div>
+                        <h3>Legal Awareness Report</h3>
+                        <small>Generated: <span id="resDate"></span></small>
+                    </div>
+                    <span id="resBadge" class="badge">Checking</span>
+                </div>
+
+                <div class="res-section" style="animation: slideUp 0.3s ease 0.1s both;">
+                    <span class="res-label">🔍 Case Summary</span>
+                    <p id="resSummary" class="res-text"></p>
+                </div>
+
+                <div class="form-row" style="margin-bottom:0;">
+                    <div class="res-section" style="animation: slideUp 0.3s ease 0.2s both;">
+                        <span class="res-label">⚖️ Legal Provisions</span>
+                        <p id="resSections" class="res-text res-text-bold"></p>
+                    </div>
+                    <div class="res-section" style="animation: slideUp 0.3s ease 0.3s both;">
+                        <span class="res-label">⚠️ Bail Risk Level</span>
+                        <p id="resRisk" class="res-text res-text-bold"></p>
+                    </div>
+                </div>
+
+                <div class="res-section highlight" style="animation: slideUp 0.3s ease 0.4s both;">
+                    <span class="res-label">🚀 Recommended Legal Steps</span>
+                    <div id="resAction" class="res-text" style="font-size: 0.9rem;"></div>
+                </div>
+
+                <div class="disclaimer-box" style="animation: slideUp 0.3s ease 0.5s both;">
+                    <span style="font-size:1.2rem;">ℹ️</span>
+                    <span><strong>DISCLAIMER:</strong> <span id="resDisclaimer"></span></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('btnAnalyze').addEventListener('click', async function() {
+        const payload = {
+            summary: document.getElementById('bailSummary').value.trim(),
+            sections: document.getElementById('bailSections').value.trim(),
+            nature: document.getElementById('bailNature').value.trim(),
+            evidence: document.getElementById('bailEvidence').value,
+            record: document.getElementById('bailRecord').value,
+            arrest_status: document.getElementById('bailStatus').value
+        };
+
+        if (!payload.summary) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Required Field',
+                text: 'Please provide a case summary.',
+                background: '#0f172a', color: '#fff'
+            });
+            return;
+        }
+
+        const btn = this;
+        const emptyEl = document.getElementById('stateEmpty');
+        const loadingEl = document.getElementById('stateLoading');
+        const resultsEl = document.getElementById('stateResults');
+
+        // UI Reset
+        btn.disabled = true;
+        emptyEl.style.display = 'none';
+        resultsEl.style.display = 'none';
+        loadingEl.style.display = 'block';
+
+        try {
+            const response = await fetch('/api/analyze-bail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            // Populate Data
+            document.getElementById('resDate').textContent = new Date().toLocaleString();
+            document.getElementById('resSummary').textContent = data.summary;
+            document.getElementById('resSections').textContent = data.sections;
+            document.getElementById('resAction').innerHTML = data.action;
+            document.getElementById('resDisclaimer').textContent = data.disclaimer;
+            
+            const badge = document.getElementById('resBadge');
+            const riskEl = document.getElementById('resRisk');
+            
+            badge.textContent = data.status;
+            riskEl.textContent = data.risk;
+
+            // Clean classes
+            badge.className = 'badge-status';
+            const riskStr = data.risk.toLowerCase();
+            
+            if (riskStr.includes('high')) {
+                badge.classList.add('status-high');
+                riskEl.classList.add('text-danger');
+            } else if (riskStr.includes('med')) {
+                badge.classList.add('status-med');
+                riskEl.classList.add('text-warning');
+            } else {
+                badge.classList.add('status-low');
+                riskEl.classList.add('text-success');
+            }
+
+            // Fast transition
+            setTimeout(() => {
+                loadingEl.style.display = 'none';
+                resultsEl.style.display = 'block';
+                btn.disabled = false;
+            }, 300);
+
+        } catch (err) {
+            loadingEl.style.display = 'none';
+            emptyEl.style.display = 'block';
+            btn.disabled = false;
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Analysis Error',
+                text: err.message,
+                background: '#0f172a', color: '#fff'
+            });
+        }
+    });
+</script>
+{% endblock %}

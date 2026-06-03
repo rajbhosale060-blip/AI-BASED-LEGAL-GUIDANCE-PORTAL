@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+<!-- Welcome Banner -->
+<div style="margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div>
+    <h1 class="page-title">🏛️ Legal Aid Dashboard</h1>
+    <p class="page-subtitle">Welcome back, <strong style="color:var(--primary-light)">{{ session.user_name }}</strong> — Your legal rights, simplified.</p>
+  </div>
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+    <a href="{{ url_for('chatbot') }}" class="btn-primary-custom">🤖 Ask AI Assistant</a>
+    <a href="{{ url_for('case_analyzer') }}" class="btn-outline-custom">📂 Analyze Case</a>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.75rem">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(124,58,237,0.2)">📂</div>
+    <div><div class="stat-num" style="color:var(--primary-light)">{{ total_cases }}</div><div class="stat-label">Cases Analyzed</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(16,185,129,0.15)">📁</div>
+    <div><div class="stat-num" style="color:#10b981">{{ ev_count }}</div><div class="stat-label">Evidence Uploaded</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(245,158,11,0.15)">⚖️</div>
+    <div><div class="stat-num" style="color:var(--accent)">15</div><div class="stat-label">Laws in Database</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(59,130,246,0.15)">🗺️</div>
+    <div><div class="stat-num" style="color:#60a5fa">36</div><div class="stat-label">Districts Covered</div></div>
+  </div>
+</div>
+
+<!-- Legal Tip Ticker -->
+<div class="tips-ticker" id="tipTicker" style="margin-bottom:1.75rem">
+  <span id="tipIcon">💡</span> <span id="tipText">Loading legal tip...</span>
+</div>
+
+<!-- Feature Cards Grid -->
+<div style="margin-bottom:1.75rem">
+  <h2 class="section-title">🔗 All Features</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+    <a href="{{ url_for('chatbot') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(124,58,237,0.2)">🤖</div>
+      <div class="feature-title">AI Legal Chatbot</div>
+      <div class="feature-desc">Ask legal questions in plain language. Supports English, Hindi & Marathi.</div>
+    </a>
+    <a href="{{ url_for('case_analyzer') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(16,185,129,0.15)">📂</div>
+      <div class="feature-title">Case Analyzer</div>
+      <div class="feature-desc">Describe your case and get structured legal analysis instantly.</div>
+    </a>
+    <a href="{{ url_for('evidence') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(245,158,11,0.15)">📁</div>
+      <div class="feature-title">Evidence Manager</div>
+      <div class="feature-desc">Upload photos, PDFs, videos, documents as legal evidence.</div>
+    </a>
+    <a href="{{ url_for('legal_aid') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(239,68,68,0.15)">🏛️</div>
+      <div class="feature-title">Legal Aid Resources</div>
+      <div class="feature-desc">NALSA, helplines, state legal aid offices, free lawyer access.</div>
+    </a>
+    <a href="{{ url_for('legal_acts') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(59,130,246,0.15)">📜</div>
+      <div class="feature-title">Indian Laws & Rights</div>
+      <div class="feature-desc">Browse IPC, CrPC, Constitution, POCSO, DV Act and more.</div>
+    </a>
+    <a href="{{ url_for('map_page') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(20,184,166,0.15)">🗺️</div>
+      <div class="feature-title">Police Station Map</div>
+      <div class="feature-desc">Find nearest police stations and legal aid centers in Maharashtra.</div>
+    </a>
+    <a href="{{ url_for('quiz') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(236,72,153,0.15)">🧠</div>
+      <div class="feature-title">Legal Awareness Quiz</div>
+      <div class="feature-desc">Test your knowledge of Indian laws, FIR, rights, and legal aid.</div>
+    </a>
+    <a href="{{ url_for('video_assistant') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(124,58,237,0.25)">📹</div>
+      <div class="feature-title">Video AI Assistant</div>
+      <div class="feature-desc">Talk to our AI lawyer avatar with voice support and document guidance.</div>
+    </a>
+    <a href="{{ url_for('bail_checker') }}" class="feature-card">
+      <div class="feature-icon" style="background:rgba(245,158,11,0.25)">🔓</div>
+      <div class="feature-title">Bail Eligibility Checker</div>
+      <div class="feature-desc">Check if you are eligible for Regular or Anticipatory bail based on case facts.</div>
+    </a>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.75rem">
+  <div class="glass-card">
+    <h3 class="section-title">📊 Case Types</h3>
+    {% if total_cases > 0 %}
+    <canvas id="caseTypeChart" height="200"></canvas>
+    {% else %}
+    <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+      <div style="font-size:2rem;margin-bottom:.5rem">📭</div>
+      <p>No cases analyzed yet. <a href="{{ url_for('case_analyzer') }}" style="color:var(--primary-light)">Analyze your first case →</a></p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="glass-card">
+    <h3 class="section-title">🎯 Severity Levels</h3>
+    {% if total_cases > 0 %}
+    <canvas id="severityChart" height="200"></canvas>
+    {% else %}
+    <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+      <div style="font-size:2rem;margin-bottom:.5rem">📈</div>
+      <p>Severity data will appear after case analysis.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Emergency Helplines -->
+<div class="glass-card glass-card-purple">
+  <h3 class="section-title">🆘 Emergency Helplines</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem">
+    {% for name,num,color in [
+      ('Police','100','#ef4444'),
+      ('Emergency','112','#f59e0b'),
+      ('Women Helpline','1091','#ec4899'),
+      ('Child Helpline','1098','#10b981'),
+      ('Legal Aid (NALSA)','15100','#7c3aed'),
+      ('Cyber Crime','1930','#3b82f6'),
+      ('Domestic Violence','181','#f97316'),
+      ('NHRC','14433','#8b5cf6')
+    ] %}
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:.85rem;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:{{ color }}">{{ num }}</div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem">{{ name }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const TIPS = [
+  "💡 Under Section 154 CrPC, police CANNOT refuse to register your FIR. It is your legal right.",
+  "💡 Article 21 of the Constitution guarantees your Right to Life and Personal Liberty.",
+  "💡 If annual income is below ₹1 lakh, you are entitled to FREE legal aid from NALSA — Call 15100.",
+  "💡 You must be produced before a Magistrate within 24 hours of arrest (Section 57 CrPC).",
+  "💡 Report cyber fraud immediately at 1930 — early action increases money recovery chances.",
+  "💡 You can file RTI online at rtionline.gov.in for just ₹10 to get government information.",
+  "💡 Under POCSO Act, any person aware of child sexual abuse MUST report it to police.",
+  "💡 Zero FIR — You can file FIR at ANY police station regardless of jurisdiction.",
+  "💡 Women can file complaints at any police station under Section 154 CrPC, even at midnight.",
+  "💡 Article 39A guarantees free legal aid as a Directive Principle of State Policy.",
+];
+let tipIdx = 0;
+function rotateTip() {
+  const el = document.getElementById('tipText');
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = TIPS[tipIdx % TIPS.length];
+    el.style.opacity = '1';
+    tipIdx++;
+  }, 400);
+}
+rotateTip();
+setInterval(rotateTip, 5000);
+document.getElementById('tipText').style.transition = 'opacity .4s';
+
+// Charts
+{% if total_cases > 0 %}
+const ctData = {{ ct_counts|safe }};
+const svData = {{ sv_counts|safe }};
+const chartDefaults = {
+  plugins:{legend:{labels:{color:'#a0a0c0',font:{size:12}}}},
+  scales:{x:{display:false},y:{display:false}}
+};
+
+new Chart(document.getElementById('caseTypeChart'), {
+  type:'doughnut',
+  data:{
+    labels:Object.keys(ctData),
+    datasets:[{data:Object.values(ctData),
+      backgroundColor:['#7c3aed','#10b981','#f59e0b','#ef4444','#3b82f6','#ec4899','#8b5cf6'],
+      borderWidth:2,borderColor:'rgba(255,255,255,0.05)'}]
+  },
+  options:{plugins:{legend:{position:'bottom',labels:{color:'#a0a0c0',padding:12,font:{size:11}}}}}
+});
+
+new Chart(document.getElementById('severityChart'), {
+  type:'bar',
+  data:{
+    labels:['High','Medium','Low'],
+    datasets:[{data:[svData.High||0, svData.Medium||0, svData.Low||0],
+      backgroundColor:['rgba(239,68,68,0.7)','rgba(245,158,11,0.7)','rgba(16,185,129,0.7)'],
+      borderRadius:8,borderWidth:0}]
+  },
+  options:{plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:'#a0a0c0'},grid:{display:false}},
+      y:{ticks:{color:'#a0a0c0',stepSize:1},grid:{color:'rgba(255,255,255,0.05)'}}
+    }}
+});
+{% endif %}
+</script>
+{% endblock %}

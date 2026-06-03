@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Legal Aid Resources{% endblock %}
+{% block content %}
+<h1 class="page-title">🏛️ Legal Aid Resources</h1>
+<p class="page-subtitle">Free legal services, helplines, and NALSA offices available to every Indian citizen.</p>
+
+<!-- NALSA Banner -->
+<div class="glass-card glass-card-purple" style="margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+  <div style="font-size:3rem">⚖️</div>
+  <div style="flex:1">
+    <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:.4rem">National Legal Services Authority (NALSA)</h2>
+    <p style="font-size:.85rem;color:var(--text-muted);line-height:1.6">
+      Under the <strong>Legal Services Authorities Act, 1987</strong>, NALSA provides FREE legal services to marginalized and economically weak citizens.
+      If your income is below ₹1,00,000 per year, you are entitled to a free lawyer, free legal advice, and Lok Adalat services.
+    </p>
+  </div>
+  <div style="text-align:center">
+    <div style="font-size:2rem;font-weight:900;color:var(--primary-light)">15100</div>
+    <div style="font-size:.75rem;color:var(--text-muted)">Toll-Free Helpline</div>
+  </div>
+</div>
+
+<!-- Eligibility -->
+<div class="glass-card" style="margin-bottom:1.5rem">
+  <h3 class="section-title">✅ Who is Eligible for Free Legal Aid?</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem">
+    {% for item in [
+      ('💰','Income below ₹1,00,000/year','Economic criterion'),
+      ('🏷️','SC/ST community members','By category'),
+      ('👩','Women and children','By category'),
+      ('♿','Persons with disabilities','By category'),
+      ('🌊','Victims of disasters/mass violence','Special provision'),
+      ('🔒','Persons in custody','Constitutional right'),
+      ('🤝','Victims of trafficking','Special provision'),
+      ('🏥','Mentally ill persons','Special provision'),
+    ] %}
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:.85rem;display:flex;gap:.75rem;align-items:center">
+      <span style="font-size:1.4rem">{{ item[0] }}</span>
+      <div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text-primary)">{{ item[1] }}</div>
+        <div style="font-size:.72rem;color:var(--text-muted)">{{ item[2] }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- State & District Legal Services -->
+<div class="glass-card" style="margin-bottom:1.5rem">
+  <h3 class="section-title">🗂️ Maharashtra Legal Services Authorities</h3>
+  <div style="overflow-x:auto">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Authority</th>
+          <th>Level</th>
+          <th>Contact</th>
+          <th>Website</th>
+          <th>Services</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in [
+          ('NALSA','National','15100 (Toll-Free)','nalsa.gov.in','Free legal aid, Lok Adalat, awareness'),
+          ('MSLSA — Maharashtra State Legal Services Authority','State','020-26128000','mslsa.nic.in','State-level free aid, policy'),
+          ('DLSA Mumbai','District (Mumbai)','022-22622627','—','Free lawyers, mediation, Lok Adalat'),
+          ('DLSA Pune','District (Pune)','020-26123482','—','Free lawyers, legal awareness'),
+          ('DLSA Nagpur','District (Nagpur)','0712-2560900','—','Free lawyers, Lok Adalat camps'),
+          ('DLSA Aurangabad','District (Aurangabad)','0240-2345100','—','Free lawyers, mobile legal aid'),
+          ('DLSA Nashik','District (Nashik)','0253-2311100','—','Free legal services'),
+          ('DLSA Kolhapur','District (Kolhapur)','0231-2540100','—','Free lawyers, legal literacy'),
+        ] %}
+        <tr>
+          <td style="color:var(--text-primary);font-weight:500">{{ row[0] }}</td>
+          <td><span class="badge-purple">{{ row[1] }}</span></td>
+          <td style="color:var(--primary-light);font-weight:600">{{ row[2] }}</td>
+          <td style="font-size:.8rem">{% if row[3] != '—' %}<a href="http://{{ row[3] }}" target="_blank" style="color:var(--accent)">{{ row[3] }}</a>{% else %}—{% endif %}</td>
+          <td style="font-size:.8rem">{{ row[4] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Helplines Grid -->
+<div class="glass-card" style="margin-bottom:1.5rem">
+  <h3 class="section-title">📞 National Helplines</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem">
+    {% for name,num,desc,color in [
+      ('Police Emergency','100','Local police, crime reporting','#ef4444'),
+      ('National Emergency','112','All emergencies (police/fire/ambulance)','#f59e0b'),
+      ('Women Helpline','1091','Women in distress, 24x7','#ec4899'),
+      ('Child Helpline','1098','Children in need, 24x7','#10b981'),
+      ('NALSA Free Legal','15100','Free lawyer & legal aid','#7c3aed'),
+      ('Cyber Crime','1930','Online fraud, cyber offence','#3b82f6'),
+      ('Domestic Violence','181','Women domestic violence helpline','#f97316'),
+      ('NHRC (Human Rights)','14433','Human rights violations','#8b5cf6'),
+      ('Anti-Corruption (ACB)','1064','Bribery & corruption complaints','#06b6d4'),
+      ('Senior Citizen','14567','Elderly distress & abuse','#84cc16'),
+      ('Railway Police','182','Railway crime / distress','#f43f5e'),
+      ('Ambulance','108','Medical emergency','#22c55e'),
+    ] %}
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;transition:all .2s" onmouseover="this.style.borderColor='{{ color }}'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.6rem;font-weight:900;color:{{ color }}">{{ num }}</div>
+      <div style="font-size:.82rem;font-weight:600;color:var(--text-primary);margin:.25rem 0">{{ name }}</div>
+      <div style="font-size:.72rem;color:var(--text-muted)">{{ desc }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Online Resources -->
+<div class="glass-card">
+  <h3 class="section-title">🌐 Useful Online Resources</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.75rem">
+    {% for name,url,desc in [
+      ('NALSA','nalsa.gov.in','National free legal services'),
+      ('Cyber Crime Portal','cybercrime.gov.in','Report cyber crimes online'),
+      ('RTI Online','rtionline.gov.in','File Right to Information request'),
+      ('Consumer Helpline','consumerhelpline.gov.in','Consumer complaint portal'),
+      ('e-Court Services','ecourts.gov.in','Case status, court orders'),
+      ('Maharashtra Police','mahapolice.gov.in','MH police services & FIR'),
+      ('NHRC','nhrc.nic.in','Human rights complaints'),
+      ('eSahayata (MH)','aaplesarkar.mahaonline.gov.in','MH citizen services'),
+    ] %}
+    <a href="https://{{ url }}" target="_blank"
+       style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:.85rem;text-decoration:none;transition:all .2s;display:block"
+       onmouseover="this.style.background='rgba(124,58,237,0.12)';this.style.borderColor='var(--primary)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.borderColor='var(--border)'">
+      <div style="font-size:.85rem;font-weight:600;color:var(--primary-light);margin-bottom:.2rem">{{ name }}</div>
+      <div style="font-size:.72rem;color:var(--accent)">{{ url }}</div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem">{{ desc }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

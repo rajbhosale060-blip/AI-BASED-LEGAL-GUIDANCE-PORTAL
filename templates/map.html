@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maharashtra Police Directory</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0a0f1e;
+      --navy2: #111827;
+      --panel: #141c2f;
+      --border: #1e2d4a;
+      --accent: #f59e0b;
+      --accent2: #3b82f6;
+      --muted: #64748b;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --red: #ef4444;
+      --green: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #0a0f1e 0%, #0d1a33 60%, #0f1f3d 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .badge {
+      width: 52px;
+      height: 52px;
+      background: var(--accent);
+      clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    header h1 span {
+      display: block;
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 4px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+    }
+
+    .header-right {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .emergency {
+      background: var(--red);
+      color: white;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+      animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.75;
+      }
+    }
+
+    .btn-back-header {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text2);
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 20px;
+      transition: all 0.25s;
+      flex-shrink: 0;
+    }
+
+    .btn-back-header:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateX(-4px);
+    }
+
+    .emergency small {
+      font-size: 10px;
+      display: block;
+      text-align: center;
+      letter-spacing: 2px;
+      opacity: 0.85;
+    }
+
+    /* CONTROLS */
+    .controls {
+      padding: 16px 32px;
+      background: var(--navy2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 400px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 9px 12px 9px 36px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--accent2);
+    }
+
+    .search-wrap input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-wrap::before {
+      content: '🔍';
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.5;
+    }
+
+    .filter-btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .count-badge {
+      margin-left: auto;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .count-badge span {
+      color: var(--accent2);
+      font-weight: 500;
+    }
+
+    /* GRID */
+    .grid {
+      padding: 24px 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      animation: fadeIn 0.3s ease both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent2);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header {
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, transparent 100%);
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-header .left h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .card-header .marathi {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+      font-size: 13px;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .district-code {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    .card-body {
+      padding: 14px 16px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .info-row .icon {
+      color: var(--accent2);
+      font-size: 13px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      width: 16px;
+    }
+
+    .info-row .label {
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      min-width: 56px;
+    }
+
+    .info-row .val {
+      color: var(--text2);
+      line-height: 1.4;
+    }
+
+    .info-row a.tel {
+      color: var(--green);
+      text-decoration: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .info-row a.tel:hover {
+      text-decoration: underline;
+    }
+
+    .coords {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* STATIONS SECTION */
+    .stations-toggle {
+      background: none;
+      border: none;
+      border-top: 1px solid var(--border);
+      width: 100%;
+      padding: 10px 16px;
+      color: var(--text2);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s;
+    }
+
+    .stations-toggle:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+    }
+
+    .stations-toggle .arrow {
+      transition: transform 0.2s;
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    .stations-toggle.open .arrow {
+      transform: rotate(180deg);
+    }
+
+    .stations-list {
+      display: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .stations-list.open {
+      display: block;
+    }
+
+    .station-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(30, 45, 74, 0.5);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .station-item:last-child {
+      border-bottom: none;
+    }
+
+    .station-item .s-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+
+    .station-item .s-taluka {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .station-item .s-addr {
+      font-size: 11px;
+      color: var(--muted);
+      grid-column: 1;
+    }
+
+    .station-item a.s-tel {
+      color: var(--green);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      text-decoration: none;
+      text-align: right;
+      grid-row: span 2;
+      align-self: center;
+    }
+
+    .station-item a.s-tel:hover {
+      text-decoration: underline;
+    }
+
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    footer a {
+      color: var(--accent2);
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 16px;
+      }
+
+      .controls,
+      .grid {
+        padding: 12px 16px;
+      }
+
+      header h1 {
+        font-size: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <a href="{{ url_for('dashboard') }}" class="btn-back-header" title="Back to Dashboard">
+      ←
+    </a>
+    <div class="badge">🛡️</div>
+    <div>
+      <h1>
+        <span>MAHARASHTRA POLICE</span>
+        District Directory
+      </h1>
+    </div>
+    <div class="header-right">
+      <div class="emergency">📞 112<small>CONTROL ROOM</small></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Search district, taluka, station…" oninput="filterCards()">
+    </div>
+    <button class="filter-btn active" onclick="setFilter('all', this)">All Districts</button>
+    <button class="filter-btn" onclick="setFilter('konkan', this)">Konkan</button>
+    <button class="filter-btn" onclick="setFilter('nashik', this)">Nashik</button>
+    <button class="filter-btn" onclick="setFilter('pune', this)">Pune</button>
+    <button class="filter-btn" onclick="setFilter('marathwada', this)">Marathwada</button>
+    <button class="filter-btn" onclick="setFilter('amravati', this)">Amravati</button>
+    <button class="filter-btn" onclick="setFilter('nagpur', this)">Nagpur</button>
+    <div class="count-badge">Showing <span id="visibleCount">36</span> of 36 districts</div>
+  </div>
+
+  <div class="grid" id="cardsGrid"></div>
+
+  <footer>
+    Maharashtra Police &nbsp;·&nbsp; <a href="https://www.mahapolice.gov.in" target="_blank">mahapolice.gov.in</a>
+    &nbsp;·&nbsp; Emergency: 112
+  </footer>
+
+  <script>
+    const DIRECTORY = [
+      {
+        slug: "mumbai", district_name: "Mumbai City", marathi_name: "मुंबई शहर", map_label: "मुंबई", office_name: "Commissioner Office Mumbai", office_address: "Crawford Market, Mumbai", office_contact: "022-22621855", latitude: 18.9388, longitude: 72.8354, region: "konkan", taluka_stations: [
+          { taluka: "Colaba", station_name: "Colaba Police Station", address: "Colaba, Mumbai", contact_number: "022-22856061", latitude: 18.9067, longitude: 72.8147 },
+          { taluka: "MRA Marg", station_name: "MRA Marg Police Station", address: "MRA Marg, Mumbai", contact_number: "022-22620247", latitude: 18.9389, longitude: 72.8352 },
+          { taluka: "Dadar", station_name: "Dadar Police Station", address: "Dadar, Mumbai", contact_number: "022-24145731", latitude: 19.0178, longitude: 72.8478 }
+        ]
+      },
+      {
+        slug: "mumbai-suburban", district_name: "Mumbai Suburban", marathi_name: "मुंबई उपनगर", map_label: "मुंबई उपनगर", office_name: "Commissioner Office Mumbai Suburban", office_address: "Bandra East, Mumbai Suburban", office_contact: "022-26500400", latitude: 19.0728, longitude: 72.8826, region: "konkan", taluka_stations: [
+          { taluka: "Bandra", station_name: "Bandra Police Station", address: "Bandra West, Mumbai", contact_number: "022-26423177", latitude: 19.0596, longitude: 72.8295 },
+          { taluka: "Andheri", station_name: "Andheri Police Station", address: "Andheri East, Mumbai", contact_number: "022-26832190", latitude: 19.1136, longitude: 72.8697 },
+          { taluka: "Borivali", station_name: "Borivali Police Station", address: "Borivali West, Mumbai", contact_number: "022-28932333", latitude: 19.2290, longitude: 72.8567 }
+        ]
+      },
+      {
+        slug: "thane", district_name: "Thane", marathi_name: "ठाणे", map_label: "ठाणे", office_name: "SP Office Thane Rural", office_address: "Court Naka, Thane", office_contact: "022-25347771", latitude: 19.2183, longitude: 72.9781, region: "konkan", taluka_stations: [
+          { taluka: "Bhiwandi", station_name: "Bhiwandi Taluka Police Station", address: "Bhiwandi, Thane", contact_number: "02522-231022", latitude: 19.2969, longitude: 73.0631 },
+          { taluka: "Shahapur", station_name: "Shahapur Police Station", address: "Shahapur, Thane", contact_number: "02527-272166", latitude: 19.4501, longitude: 73.3256 },
+          { taluka: "Murbad", station_name: "Murbad Police Station", address: "Murbad, Thane", contact_number: "02524-222155", latitude: 19.2532, longitude: 73.3908 }
+        ]
+      },
+      {
+        slug: "palghar", district_name: "Palghar", marathi_name: "पालघर", map_label: "पालघर", office_name: "SP Office Palghar", office_address: "Collector Office Campus, Palghar", office_contact: "02525-252200", latitude: 19.6967, longitude: 72.7650, region: "konkan", taluka_stations: [
+          { taluka: "Vasai", station_name: "Vasai Police Station", address: "Vasai, Palghar", contact_number: "0250-2324044", latitude: 19.3919, longitude: 72.8397 },
+          { taluka: "Dahanu", station_name: "Dahanu Police Station", address: "Dahanu, Palghar", contact_number: "02528-222055", latitude: 19.9670, longitude: 72.7122 },
+          { taluka: "Boisar", station_name: "Boisar Police Station", address: "Boisar, Palghar", contact_number: "02525-272144", latitude: 19.8036, longitude: 72.7558 }
+        ]
+      },
+      {
+        slug: "raigad", district_name: "Raigad", marathi_name: "रायगड", map_label: "रायगड", office_name: "SP Office Raigad", office_address: "Alibag, Raigad", office_contact: "02141-222034", latitude: 18.6414, longitude: 72.8722, region: "konkan", taluka_stations: [
+          { taluka: "Alibag", station_name: "Alibag Police Station", address: "Alibag, Raigad", contact_number: "02141-222113", latitude: 18.6410, longitude: 72.8798 },
+          { taluka: "Panvel", station_name: "Panvel Taluka Police Station", address: "Panvel, Raigad", contact_number: "022-27452333", latitude: 18.9894, longitude: 73.1175 },
+          { taluka: "Mahad", station_name: "Mahad Police Station", address: "Mahad, Raigad", contact_number: "02145-222036", latitude: 18.0830, longitude: 73.4200 }
+        ]
+      },
+      {
+        slug: "ratnagiri", district_name: "Ratnagiri", marathi_name: "रत्नागिरी", map_label: "रत्नागिरी", office_name: "SP Office Ratnagiri", office_address: "Civil Hospital Road, Ratnagiri", office_contact: "02352-223300", latitude: 16.9902, longitude: 73.3120, region: "konkan", taluka_stations: [
+          { taluka: "Chiplun", station_name: "Chiplun Police Station", address: "Chiplun, Ratnagiri", contact_number: "02355-252100", latitude: 17.5333, longitude: 73.5170 },
+          { taluka: "Khed", station_name: "Khed Police Station", address: "Khed, Ratnagiri", contact_number: "02356-263155", latitude: 17.7189, longitude: 73.3969 },
+          { taluka: "Rajapur", station_name: "Rajapur Police Station", address: "Rajapur, Ratnagiri", contact_number: "02353-222166", latitude: 16.6575, longitude: 73.5205 }
+        ]
+      },
+      {
+        slug: "sindhudurg", district_name: "Sindhudurg", marathi_name: "सिंधुदुर्ग", map_label: "सिंधुदुर्ग", office_name: "SP Office Sindhudurg", office_address: "Oros, Sindhudurg", office_contact: "02362-228900", latitude: 16.3492, longitude: 73.5594, region: "konkan", taluka_stations: [
+          { taluka: "Kudal", station_name: "Kudal Police Station", address: "Kudal, Sindhudurg", contact_number: "02362-222133", latitude: 16.0116, longitude: 73.6880 },
+          { taluka: "Sawantwadi", station_name: "Sawantwadi Police Station", address: "Sawantwadi, Sindhudurg", contact_number: "02363-272144", latitude: 15.9048, longitude: 73.8213 },
+          { taluka: "Malvan", station_name: "Malvan Police Station", address: "Malvan, Sindhudurg", contact_number: "02365-252111", latitude: 16.0597, longitude: 73.4708 }
+        ]
+      },
+      {
+        slug: "nashik", district_name: "Nashik", marathi_name: "नाशिक", map_label: "नाशिक", office_name: "SP Office Nashik Rural", office_address: "Sharanpur Road, Nashik", office_contact: "0253-2571921", latitude: 19.9975, longitude: 73.7898, region: "nashik", taluka_stations: [
+          { taluka: "Sinnar", station_name: "Sinnar Police Station", address: "Sinnar, Nashik", contact_number: "02551-220033", latitude: 19.8456, longitude: 74.0009 },
+          { taluka: "Niphad", station_name: "Niphad Police Station", address: "Niphad, Nashik", contact_number: "02550-241144", latitude: 20.0809, longitude: 73.8003 },
+          { taluka: "Malegaon Rural", station_name: "Malegaon Rural Police Station", address: "Malegaon Rural, Nashik", contact_number: "02554-254211", latitude: 20.5497, longitude: 74.5287 }
+        ]
+      },
+      {
+        slug: "nandurbar", district_name: "Nandurbar", marathi_name: "नंदुरबार", map_label: "नंदुरबार", office_name: "SP Office Nandurbar", office_address: "Collector Office Road, Nandurbar", office_contact: "02564-210600", latitude: 21.3669, longitude: 74.2401, region: "nashik", taluka_stations: [
+          { taluka: "Shahada", station_name: "Shahada Police Station", address: "Shahada, Nandurbar", contact_number: "02565-223144", latitude: 21.5464, longitude: 74.4681 },
+          { taluka: "Navapur", station_name: "Navapur Police Station", address: "Navapur, Nandurbar", contact_number: "02569-250122", latitude: 21.1587, longitude: 73.7949 },
+          { taluka: "Taloda", station_name: "Taloda Police Station", address: "Taloda, Nandurbar", contact_number: "02567-223111", latitude: 21.5614, longitude: 74.2115 }
+        ]
+      },
+      {
+        slug: "dhule", district_name: "Dhule", marathi_name: "धुळे", map_label: "धुळे", office_name: "SP Office Dhule", office_address: "Sakri Road, Dhule", office_contact: "02562-288600", latitude: 20.9042, longitude: 74.7749, region: "nashik", taluka_stations: [
+          { taluka: "Sakri", station_name: "Sakri Police Station", address: "Sakri, Dhule", contact_number: "02568-242100", latitude: 20.9907, longitude: 74.3132 },
+          { taluka: "Shirpur", station_name: "Shirpur Police Station", address: "Shirpur, Dhule", contact_number: "02563-255144", latitude: 21.3489, longitude: 74.8791 },
+          { taluka: "Sindkheda", station_name: "Sindkheda Police Station", address: "Sindkheda, Dhule", contact_number: "02566-235122", latitude: 21.2758, longitude: 74.5140 }
+        ]
+      },
+      {
+        slug: "jalgaon", district_name: "Jalgaon", marathi_name: "जळगाव", map_label: "जळगाव", office_name: "SP Office Jalgaon", office_address: "Collector Office Road, Jalgaon", office_contact: "0257-2222900", latitude: 21.0077, longitude: 75.5626, region: "nashik", taluka_stations: [
+          { taluka: "Bhusawal", station_name: "Bhusawal Police Station", address: "Bhusawal, Jalgaon", contact_number: "02582-223355", latitude: 21.0455, longitude: 75.8011 },
+          { taluka: "Chalisgaon", station_name: "Chalisgaon Police Station", address: "Chalisgaon, Jalgaon", contact_number: "02589-223144", latitude: 20.4642, longitude: 75.0140 },
+          { taluka: "Amalner", station_name: "Amalner Police Station", address: "Amalner, Jalgaon", contact_number: "02587-223022", latitude: 21.0410, longitude: 75.0586 }
+        ]
+      },
+      {
+        slug: "ahmednagar", district_name: "Ahmednagar", marathi_name: "अहमदनगर", map_label: "अहमदनगर", office_name: "SP Office Ahmednagar", office_address: "Maliwada, Ahmednagar", office_contact: "0241-2415600", latitude: 19.0952, longitude: 74.7496, region: "nashik", taluka_stations: [
+          { taluka: "Shrirampur", station_name: "Shrirampur Police Station", address: "Shrirampur, Ahmednagar", contact_number: "02422-222088", latitude: 19.6232, longitude: 74.6547 },
+          { taluka: "Sangamner", station_name: "Sangamner Police Station", address: "Sangamner, Ahmednagar", contact_number: "02425-225155", latitude: 19.5670, longitude: 74.2115 },
+          { taluka: "Karjat", station_name: "Karjat Police Station", address: "Karjat, Ahmednagar", contact_number: "02489-222199", latitude: 18.9091, longitude: 75.0116 }
+        ]
+      },
+      {
+        slug: "pune", district_name: "Pune", marathi_name: "पुणे", map_label: "पुणे", office_name: "SP Office Pune Rural", office_address: "Collector Office Campus, Pune Rural, Pune", office_contact: "020-25657171", latitude: 18.5204, longitude: 73.8567, region: "pune", taluka_stations: [
+          { taluka: "Shirur", station_name: "Shirur Police Station", address: "Shirur, Pune", contact_number: "02138-222101", latitude: 18.8278, longitude: 74.3797 },
+          { taluka: "Baramati", station_name: "Baramati City Police Station", address: "Baramati, Pune", contact_number: "02112-222233", latitude: 18.1510, longitude: 74.5770 },
+          { taluka: "Bhor", station_name: "Bhor Police Station", address: "Bhor, Pune", contact_number: "02113-222044", latitude: 18.1486, longitude: 73.8434 }
+        ]
+      },
+      {
+        slug: "satara", district_name: "Satara", marathi_name: "सातारा", map_label: "सातारा", office_name: "SP Office Satara", office_address: "Powai Naka, Satara", office_contact: "02162-238300", latitude: 17.6805, longitude: 74.0183, region: "pune", taluka_stations: [
+          { taluka: "Karad", station_name: "Karad City Police Station", address: "Karad, Satara", contact_number: "02164-222122", latitude: 17.2894, longitude: 74.1818 },
+          { taluka: "Wai", station_name: "Wai Police Station", address: "Wai, Satara", contact_number: "02167-220144", latitude: 17.9536, longitude: 73.8885 },
+          { taluka: "Phaltan", station_name: "Phaltan Police Station", address: "Phaltan, Satara", contact_number: "02166-220244", latitude: 17.9898, longitude: 74.4314 }
+        ]
+      },
+      {
+        slug: "sangli", district_name: "Sangli", marathi_name: "सांगली", map_label: "सांगली", office_name: "SP Office Sangli", office_address: "Vishrambag, Sangli", office_contact: "0233-2671000", latitude: 16.8524, longitude: 74.5815, region: "pune", taluka_stations: [
+          { taluka: "Miraj", station_name: "Miraj City Police Station", address: "Miraj, Sangli", contact_number: "0233-2222600", latitude: 16.8302, longitude: 74.6426 },
+          { taluka: "Tasgaon", station_name: "Tasgaon Police Station", address: "Tasgaon, Sangli", contact_number: "02346-240122", latitude: 17.0370, longitude: 74.6044 },
+          { taluka: "Jat", station_name: "Jat Police Station", address: "Jat, Sangli", contact_number: "02344-246144", latitude: 17.0496, longitude: 75.2171 }
+        ]
+      },
+      {
+        slug: "solapur", district_name: "Solapur", marathi_name: "सोलापूर", map_label: "सोलापूर", office_name: "SP Office Solapur Rural", office_address: "Jule Solapur Road, Solapur", office_contact: "0217-2733001", latitude: 17.6599, longitude: 75.9064, region: "pune", taluka_stations: [
+          { taluka: "Pandharpur", station_name: "Pandharpur City Police Station", address: "Pandharpur, Solapur", contact_number: "02186-223100", latitude: 17.6792, longitude: 75.3278 },
+          { taluka: "Barshi", station_name: "Barshi Police Station", address: "Barshi, Solapur", contact_number: "02184-223144", latitude: 18.2373, longitude: 75.6924 },
+          { taluka: "Akkalkot", station_name: "Akkalkot Police Station", address: "Akkalkot, Solapur", contact_number: "02181-220099", latitude: 17.5253, longitude: 76.2061 }
+        ]
+      },
+      {
+        slug: "kolhapur", district_name: "Kolhapur", marathi_name: "कोल्हापूर", map_label: "कोल्हापूर", office_name: "SP Office Kolhapur", office_address: "Nagala Park, Kolhapur", office_contact: "0231-2654201", latitude: 16.7050, longitude: 74.2433, region: "pune", taluka_stations: [
+          { taluka: "Karvir", station_name: "Karvir Police Station", address: "Karvir, Kolhapur", contact_number: "0231-2520110", latitude: 16.7252, longitude: 74.2218 },
+          { taluka: "Gadhinglaj", station_name: "Gadhinglaj Police Station", address: "Gadhinglaj, Kolhapur", contact_number: "02327-222141", latitude: 16.2229, longitude: 74.3513 },
+          { taluka: "Ichalkaranji", station_name: "Ichalkaranji Police Station", address: "Ichalkaranji, Kolhapur", contact_number: "0230-2431300", latitude: 16.6912, longitude: 74.4605 }
+        ]
+      },
+      {
+        slug: "chhatrapati-sambhajinagar", district_name: "Chhatrapati Sambhajinagar", marathi_name: "छत्रपती संभाजीनगर", map_label: "संभाजीनगर", office_name: "SP Office Chhatrapati Sambhajinagar Rural", office_address: "Near Collector Office, Chhatrapati Sambhajinagar", office_contact: "0240-2334550", latitude: 19.8762, longitude: 75.3433, region: "marathwada", taluka_stations: [
+          { taluka: "Paithan", station_name: "Paithan Police Station", address: "Paithan, Chhatrapati Sambhajinagar", contact_number: "02431-222141", latitude: 19.4751, longitude: 75.3856 },
+          { taluka: "Vaijapur", station_name: "Vaijapur Police Station", address: "Vaijapur, Chhatrapati Sambhajinagar", contact_number: "02436-222019", latitude: 19.9257, longitude: 74.7278 },
+          { taluka: "Gangapur", station_name: "Gangapur Police Station", address: "Gangapur, Chhatrapati Sambhajinagar", contact_number: "02433-220077", latitude: 19.6970, longitude: 75.0106 }
+        ]
+      },
+      {
+        slug: "jalna", district_name: "Jalna", marathi_name: "जालना", map_label: "जालना", office_name: "SP Office Jalna", office_address: "Collector Office Road, Jalna", office_contact: "02482-230600", latitude: 19.8347, longitude: 75.8816, region: "marathwada", taluka_stations: [
+          { taluka: "Ambad", station_name: "Ambad Police Station", address: "Ambad, Jalna", contact_number: "02483-220144", latitude: 19.6134, longitude: 75.7891 },
+          { taluka: "Bhokardan", station_name: "Bhokardan Police Station", address: "Bhokardan, Jalna", contact_number: "02485-244133", latitude: 20.2711, longitude: 75.7701 },
+          { taluka: "Partur", station_name: "Partur Police Station", address: "Partur, Jalna", contact_number: "02484-220122", latitude: 19.5968, longitude: 76.2155 }
+        ]
+      },
+      {
+        slug: "beed", district_name: "Beed", marathi_name: "बीड", map_label: "बीड", office_name: "SP Office Beed", office_address: "Nagar Road, Beed", office_contact: "02442-230900", latitude: 18.9891, longitude: 75.7601, region: "marathwada", taluka_stations: [
+          { taluka: "Georai", station_name: "Georai Police Station", address: "Georai, Beed", contact_number: "02447-222111", latitude: 19.2635, longitude: 75.7575 },
+          { taluka: "Parli", station_name: "Parli Police Station", address: "Parli, Beed", contact_number: "02446-222144", latitude: 18.8462, longitude: 76.5320 },
+          { taluka: "Majalgaon", station_name: "Majalgaon Police Station", address: "Majalgaon, Beed", contact_number: "02445-222100", latitude: 19.1592, longitude: 76.2086 }
+        ]
+      },
+      {
+        slug: "latur", district_name: "Latur", marathi_name: "लातूर", map_label: "लातूर", office_name: "SP Office Latur", office_address: "Ausa Road, Latur", office_contact: "02382-257700", latitude: 18.4088, longitude: 76.5604, region: "marathwada", taluka_stations: [
+          { taluka: "Ausa", station_name: "Ausa Police Station", address: "Ausa, Latur", contact_number: "02383-220133", latitude: 18.2477, longitude: 76.4993 },
+          { taluka: "Udgir", station_name: "Udgir Police Station", address: "Udgir, Latur", contact_number: "02385-256122", latitude: 18.3924, longitude: 77.1170 },
+          { taluka: "Nilanga", station_name: "Nilanga Police Station", address: "Nilanga, Latur", contact_number: "02384-242111", latitude: 17.9853, longitude: 76.7538 }
+        ]
+      },
+      {
+        slug: "osmanabad", district_name: "Dharashiv (Osmanabad)", marathi_name: "धाराशिव", map_label: "धाराशिव", office_name: "SP Office Dharashiv", office_address: "Tuljapur Road, Dharashiv", office_contact: "02472-223500", latitude: 18.1860, longitude: 76.0419, region: "marathwada", taluka_stations: [
+          { taluka: "Tuljapur", station_name: "Tuljapur Police Station", address: "Tuljapur, Dharashiv", contact_number: "02471-242122", latitude: 18.0080, longitude: 76.0704 },
+          { taluka: "Umarga", station_name: "Umarga Police Station", address: "Umarga, Dharashiv", contact_number: "02475-252144", latitude: 17.8385, longitude: 76.6237 },
+          { taluka: "Paranda", station_name: "Paranda Police Station", address: "Paranda, Dharashiv", contact_number: "02477-232101", latitude: 18.4071, longitude: 75.4404 }
+        ]
+      },
+      {
+        slug: "hingoli", district_name: "Hingoli", marathi_name: "हिंगोली", map_label: "हिंगोली", office_name: "SP Office Hingoli", office_address: "Basmat Road, Hingoli", office_contact: "02456-221444", latitude: 19.7176, longitude: 77.1491, region: "marathwada", taluka_stations: [
+          { taluka: "Basmat", station_name: "Basmat Police Station", address: "Basmat, Hingoli", contact_number: "02454-220155", latitude: 19.3287, longitude: 77.1578 },
+          { taluka: "Kalamnuri", station_name: "Kalamnuri Police Station", address: "Kalamnuri, Hingoli", contact_number: "02455-220122", latitude: 19.6724, longitude: 77.3067 },
+          { taluka: "Sengaon", station_name: "Sengaon Police Station", address: "Sengaon, Hingoli", contact_number: "02453-255144", latitude: 19.7053, longitude: 76.8963 }
+        ]
+      },
+      {
+        slug: "parbhani", district_name: "Parbhani", marathi_name: "परभणी", map_label: "परभणी", office_name: "SP Office Parbhani", office_address: "Vasmat Road, Parbhani", office_contact: "02452-220900", latitude: 19.2704, longitude: 76.7600, region: "marathwada", taluka_stations: [
+          { taluka: "Gangakhed", station_name: "Gangakhed Police Station", address: "Gangakhed, Parbhani", contact_number: "02453-222133", latitude: 18.9696, longitude: 76.7524 },
+          { taluka: "Jintur", station_name: "Jintur Police Station", address: "Jintur, Parbhani", contact_number: "02457-220122", latitude: 19.6112, longitude: 76.6872 },
+          { taluka: "Pathri", station_name: "Pathri Police Station", address: "Pathri, Parbhani", contact_number: "02451-255166", latitude: 19.2672, longitude: 76.4340 }
+        ]
+      },
+      {
+        slug: "nanded", district_name: "Nanded", marathi_name: "नांदेड", map_label: "नांदेड", office_name: "SP Office Nanded", office_address: "Vazirabad, Nanded", office_contact: "02462-234500", latitude: 19.1383, longitude: 77.3210, region: "marathwada", taluka_stations: [
+          { taluka: "Bhokar", station_name: "Bhokar Police Station", address: "Bhokar, Nanded", contact_number: "02467-222255", latitude: 19.2171, longitude: 77.6680 },
+          { taluka: "Kinwat", station_name: "Kinwat Police Station", address: "Kinwat, Nanded", contact_number: "02469-222133", latitude: 19.6258, longitude: 78.1987 },
+          { taluka: "Deglur", station_name: "Deglur Police Station", address: "Deglur, Nanded", contact_number: "02463-222177", latitude: 18.5518, longitude: 77.5769 }
+        ]
+      },
+      {
+        slug: "amravati", district_name: "Amravati", marathi_name: "अमरावती", map_label: "अमरावती", office_name: "SP Office Amravati Rural", office_address: "Camp Road, Amravati", office_contact: "0721-2662400", latitude: 20.9374, longitude: 77.7796, region: "amravati", taluka_stations: [
+          { taluka: "Daryapur", station_name: "Daryapur Police Station", address: "Daryapur, Amravati", contact_number: "07224-234144", latitude: 20.9240, longitude: 77.3264 },
+          { taluka: "Achalpur", station_name: "Achalpur Police Station", address: "Achalpur, Amravati", contact_number: "07223-220122", latitude: 21.2567, longitude: 77.5087 },
+          { taluka: "Morshi", station_name: "Morshi Police Station", address: "Morshi, Amravati", contact_number: "07228-222021", latitude: 21.3403, longitude: 78.0135 }
+        ]
+      },
+      {
+        slug: "buldhana", district_name: "Buldhana", marathi_name: "बुलढाणा", map_label: "बुलढाणा", office_name: "SP Office Buldhana", office_address: "Malkapur Road, Buldhana", office_contact: "07262-242500", latitude: 20.5293, longitude: 76.1840, region: "amravati", taluka_stations: [
+          { taluka: "Malkapur", station_name: "Malkapur Police Station", address: "Malkapur, Buldhana", contact_number: "07267-222100", latitude: 20.8850, longitude: 76.2022 },
+          { taluka: "Khamgaon", station_name: "Khamgaon Police Station", address: "Khamgaon, Buldhana", contact_number: "07263-252122", latitude: 20.7074, longitude: 76.5684 },
+          { taluka: "Mehkar", station_name: "Mehkar Police Station", address: "Mehkar, Buldhana", contact_number: "07268-223144", latitude: 20.1506, longitude: 76.5686 }
+        ]
+      },
+      {
+        slug: "akola", district_name: "Akola", marathi_name: "अकोला", map_label: "अकोला", office_name: "SP Office Akola", office_address: "Civil Lines, Akola", office_contact: "0724-2435500", latitude: 20.7002, longitude: 77.0082, region: "amravati", taluka_stations: [
+          { taluka: "Akot", station_name: "Akot Police Station", address: "Akot, Akola", contact_number: "07258-222122", latitude: 21.0970, longitude: 77.0586 },
+          { taluka: "Balapur", station_name: "Balapur Police Station", address: "Balapur, Akola", contact_number: "07257-222155", latitude: 20.6664, longitude: 76.7737 },
+          { taluka: "Murtijapur", station_name: "Murtijapur Police Station", address: "Murtijapur, Akola", contact_number: "07256-222044", latitude: 20.7329, longitude: 77.3660 }
+        ]
+      },
+      {
+        slug: "washim", district_name: "Washim", marathi_name: "वाशीम", map_label: "वाशीम", office_name: "SP Office Washim", office_address: "Akola Naka, Washim", office_contact: "07252-232200", latitude: 20.1110, longitude: 77.1330, region: "amravati", taluka_stations: [
+          { taluka: "Mangrulpir", station_name: "Mangrulpir Police Station", address: "Mangrulpir, Washim", contact_number: "07253-222155", latitude: 20.3132, longitude: 77.3456 },
+          { taluka: "Risod", station_name: "Risod Police Station", address: "Risod, Washim", contact_number: "07251-222122", latitude: 19.9758, longitude: 76.7855 },
+          { taluka: "Karanja", station_name: "Karanja Police Station", address: "Karanja, Washim", contact_number: "07256-222144", latitude: 20.4855, longitude: 77.4884 }
+        ]
+      },
+      {
+        slug: "yavatmal", district_name: "Yavatmal", marathi_name: "यवतमाळ", map_label: "यवतमाळ", office_name: "SP Office Yavatmal", office_address: "Arni Road, Yavatmal", office_contact: "07232-242200", latitude: 20.3899, longitude: 78.1307, region: "amravati", taluka_stations: [
+          { taluka: "Pusad", station_name: "Pusad Police Station", address: "Pusad, Yavatmal", contact_number: "07233-246155", latitude: 19.9099, longitude: 77.5786 },
+          { taluka: "Wani", station_name: "Wani Police Station", address: "Wani, Yavatmal", contact_number: "07239-232122", latitude: 20.0638, longitude: 78.9530 },
+          { taluka: "Darwha", station_name: "Darwha Police Station", address: "Darwha, Yavatmal", contact_number: "07238-254144", latitude: 20.3134, longitude: 77.7727 }
+        ]
+      },
+      {
+        slug: "wardha", district_name: "Wardha", marathi_name: "वर्धा", map_label: "वर्धा", office_name: "SP Office Wardha", office_address: "Civil Lines, Wardha", office_contact: "07152-243300", latitude: 20.7453, longitude: 78.6022, region: "nagpur", taluka_stations: [
+          { taluka: "Hinganghat", station_name: "Hinganghat Police Station", address: "Hinganghat, Wardha", contact_number: "07153-244155", latitude: 20.5487, longitude: 78.8398 },
+          { taluka: "Arvi", station_name: "Arvi Police Station", address: "Arvi, Wardha", contact_number: "07157-222122", latitude: 20.9958, longitude: 78.2308 },
+          { taluka: "Pulgaon", station_name: "Pulgaon Police Station", address: "Pulgaon, Wardha", contact_number: "07158-282144", latitude: 20.7227, longitude: 78.3244 }
+        ]
+      },
+      {
+        slug: "nagpur", district_name: "Nagpur", marathi_name: "नागपूर", map_label: "नागपूर", office_name: "SP Office Nagpur Rural", office_address: "Civil Lines, Nagpur", office_contact: "0712-2560601", latitude: 21.1458, longitude: 79.0882, region: "nagpur", taluka_stations: [
+          { taluka: "Katol", station_name: "Katol Police Station", address: "Katol, Nagpur", contact_number: "07112-222145", latitude: 21.2739, longitude: 78.5858 },
+          { taluka: "Kamptee", station_name: "Kamptee Police Station", address: "Kamptee, Nagpur", contact_number: "07109-288101", latitude: 21.2162, longitude: 79.1944 },
+          { taluka: "Umred", station_name: "Umred Police Station", address: "Umred, Nagpur", contact_number: "07116-242100", latitude: 20.8538, longitude: 79.3241 }
+        ]
+      },
+      {
+        slug: "bhandara", district_name: "Bhandara", marathi_name: "भंडारा", map_label: "भंडारा", office_name: "SP Office Bhandara", office_address: "National Highway Road, Bhandara", office_contact: "07184-252900", latitude: 21.1702, longitude: 79.6550, region: "nagpur", taluka_stations: [
+          { taluka: "Tumsar", station_name: "Tumsar Police Station", address: "Tumsar, Bhandara", contact_number: "07183-232144", latitude: 21.3837, longitude: 79.7338 },
+          { taluka: "Sakoli", station_name: "Sakoli Police Station", address: "Sakoli, Bhandara", contact_number: "07186-236100", latitude: 21.0838, longitude: 79.9864 },
+          { taluka: "Pauni", station_name: "Pauni Police Station", address: "Pauni, Bhandara", contact_number: "07185-255133", latitude: 20.7928, longitude: 79.6362 }
+        ]
+      },
+      {
+        slug: "gondia", district_name: "Gondia", marathi_name: "गोंदिया", map_label: "गोंदिया", office_name: "SP Office Gondia", office_address: "Civil Lines, Gondia", office_contact: "07182-230500", latitude: 21.4602, longitude: 80.1961, region: "nagpur", taluka_stations: [
+          { taluka: "Tirora", station_name: "Tirora Police Station", address: "Tirora, Gondia", contact_number: "07198-252100", latitude: 21.4075, longitude: 79.9323 },
+          { taluka: "Amgaon", station_name: "Amgaon Police Station", address: "Amgaon, Gondia", contact_number: "07189-224155", latitude: 21.3147, longitude: 80.3574 },
+          { taluka: "Deori", station_name: "Deori Police Station", address: "Deori, Gondia", contact_number: "07199-225122", latitude: 21.4479, longitude: 80.3744 }
+        ]
+      },
+      {
+        slug: "chandrapur", district_name: "Chandrapur", marathi_name: "चंद्रपूर", map_label: "चंद्रपूर", office_name: "SP Office Chandrapur", office_address: "Civil Lines, Chandrapur", office_contact: "07172-250600", latitude: 19.9615, longitude: 79.2961, region: "nagpur", taluka_stations: [
+          { taluka: "Ballarpur", station_name: "Ballarpur Police Station", address: "Ballarpur, Chandrapur", contact_number: "07172-240199", latitude: 19.8465, longitude: 79.3456 },
+          { taluka: "Warora", station_name: "Warora Police Station", address: "Warora, Chandrapur", contact_number: "07176-282111", latitude: 20.2280, longitude: 79.0013 },
+          { taluka: "Brahmapuri", station_name: "Brahmapuri Police Station", address: "Brahmapuri, Chandrapur", contact_number: "07177-272155", latitude: 20.6111, longitude: 79.8597 }
+        ]
+      },
+      {
+        slug: "gadchiroli", district_name: "Gadchiroli", marathi_name: "गडचिरोली", map_label: "गडचिरोली", office_name: "SP Office Gadchiroli", office_address: "Complex Area, Gadchiroli", office_contact: "07132-222400", latitude: 20.1819, longitude: 80.0030, region: "nagpur", taluka_stations: [
+          { taluka: "Aheri", station_name: "Aheri Police Station", address: "Aheri, Gadchiroli", contact_number: "07133-266144", latitude: 19.4134, longitude: 80.0039 },
+          { taluka: "Armori", station_name: "Armori Police Station", address: "Armori, Gadchiroli", contact_number: "07137-222122", latitude: 20.4804, longitude: 80.1494 },
+          { taluka: "Dhanora", station_name: "Dhanora Police Station", address: "Dhanora, Gadchiroli", contact_number: "07138-244155", latitude: 20.7630, longitude: 79.9820 }
+        ]
+      }
+    ];
+
+    let currentFilter = 'all';
+
+    function buildCard(d, idx) {
+      const stations = d.taluka_stations.map(s => `
+    <div class="station-item">
+      <div class="s-name">${s.station_name}</div>
+      <a href="tel:${s.contact_number}" class="s-tel">${s.contact_number}</a>
+      <div class="s-addr">${s.taluka} · ${s.address}</div>
+    </div>
+  `).join('');
+
+      return `
+    <div class="card" data-region="${d.region}" data-search="${(d.district_name + ' ' + d.marathi_name + ' ' + d.office_address + ' ' + d.taluka_stations.map(s => s.station_name + ' ' + s.taluka + ' ' + s.address).join(' ')).toLowerCase()}" style="animation-delay:${idx * 0.04}s">
+      <div class="card-header">
+        <div class="left">
+          <h2>${d.district_name}</h2>
+          <div class="marathi">${d.marathi_name}</div>
+        </div>
+        <div class="district-code">${d.slug.toUpperCase()}</div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="icon">🏢</span>
+          <span class="label">Office</span>
+          <span class="val">${d.office_name}</span>
+        </div>
+        <div class="info-row">
+          <span class="icon">📍</span>
+          <span class="label">Addr</span>
+          <span class="val">${d.office_address}</span>
+        </div>
+        <div class="info-row">
+          <span class="icon">📞</span>
+          <span class="label">SP Tel</span>
+          <span class="val"><a href="tel:${d.office_contact}" class="tel">${d.office_contact}</a></span>
+        </div>
+        <div class="info-row">
+          <span class="icon">🚨</span>
+          <span class="label">Control</span>
+          <span class="val"><a href="tel:112" class="tel">112</a></span>
+        </div>
+        <div class="info-row">
+          <span class="icon">🌐</span>
+          <span class="label">Web</span>
+          <span class="val"><a href="https://www.mahapolice.gov.in" target="_blank" class="tel">mahapolice.gov.in</a></span>
+        </div>
+        <div class="info-row">
+          <span class="icon">📡</span>
+          <span class="label">Coords</span>
+          <span class="val coords">${d.latitude}°N, ${d.longitude}°E</span>
+        </div>
+      </div>
+      <button class="stations-toggle" onclick="toggleStations(this)">
+        <span>Police Stations (${d.taluka_stations.length})</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="stations-list">
+        ${stations}
+      </div>
+    </div>
+  `;
+    }
+
+    function render() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const grid = document.getElementById('cardsGrid');
+      let visible = 0;
+
+      const cards = DIRECTORY.map((d, i) => {
+        const regionMatch = currentFilter === 'all' || d.region === currentFilter;
+        const searchMatch = !q || d['data-search'] ? true : (d.district_name + ' ' + d.marathi_name + ' ' + d.office_address + ' ' + d.taluka_stations.map(s => s.station_name + ' ' + s.taluka).join(' ')).toLowerCase().includes(q);
+        return { d, i, regionMatch, searchMatch };
+      });
+
+      grid.innerHTML = '';
+
+      cards.forEach(({ d, i, regionMatch }) => {
+        const searchVal = (d.district_name + ' ' + d.marathi_name + ' ' + d.office_address + ' ' + d.taluka_stations.map(s => s.station_name + ' ' + s.taluka + ' ' + s.address).join(' ')).toLowerCase();
+        const searchMatch = !q || searchVal.includes(q);
+        if (regionMatch && searchMatch) {
+          grid.insertAdjacentHTML('beforeend', buildCard(d, visible));
+          visible++;
+        }
+      });
+
+      if (visible === 0) {
+        grid.innerHTML = '<div class="no-results">// NO MATCHING RECORDS FOUND</div>';
+      }
+
+      document.getElementById('visibleCount').textContent = visible;
+    }
+
+    function filterCards() { render(); }
+
+    function setFilter(region, btn) {
+      currentFilter = region;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    function toggleStations(btn) {
+      const list = btn.nextElementSibling;
+      btn.classList.toggle('open');
+      list.classList.toggle('open');
+    }
+
+    render();
+  </script>
+</body>
+
+</html>

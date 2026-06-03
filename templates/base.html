@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>{% block title %}Legal Aid Portal{% endblock %} | AI Legal Aid India</title>
+  <meta name="description" content="Free AI-powered legal guidance for Indian citizens — FIR, bail, rights, NALSA, cyber crime, women safety."/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>"/>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container" id="flashContainer">
+  {% for category, message in messages %}
+  <div class="flash-alert {{ category }}" onclick="this.remove()">
+    <span style="font-size:1.1rem">
+      {% if category=='success' %}✅{% elif category=='danger' %}⛔{% elif category=='warning' %}⚠️{% else %}ℹ️{% endif %}
+    </span>
+    <span>{{ message }}</span>
+  </div>
+  {% endfor %}
+</div>
+<script>setTimeout(()=>{const c=document.getElementById('flashContainer');if(c)c.style.opacity='0';setTimeout(()=>{if(c)c.remove();},400);},5000);</script>
+{% endif %}
+{% endwith %}
+
+{% if session.user_id %}
+<!-- Top Navigation -->
+<nav class="topnav">
+  <a href="{{ url_for('dashboard') }}" class="nav-brand">
+    <div class="logo-icon">⚖️</div>
+    <span>Legal Aid AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('dashboard') }}"       class="{% if request.endpoint=='dashboard' %}active{% endif %}">🏠 Dashboard</a>
+    <a href="{{ url_for('chatbot') }}"          class="{% if request.endpoint=='chatbot' %}active{% endif %}">🤖 AI Chat</a>
+    <a href="{{ url_for('case_analyzer') }}"    class="{% if request.endpoint=='case_analyzer' %}active{% endif %}">📂 Case Analyzer</a>
+    <a href="{{ url_for('evidence') }}"         class="{% if request.endpoint=='evidence' %}active{% endif %}">📁 Evidence</a>
+    <a href="{{ url_for('legal_aid') }}"        class="{% if request.endpoint=='legal_aid' %}active{% endif %}">🏛️ Legal Aid</a>
+    <a href="{{ url_for('legal_acts') }}"       class="{% if request.endpoint=='legal_acts' %}active{% endif %}">📜 Laws</a>
+    <a href="{{ url_for('map_page') }}"         class="{% if request.endpoint=='map_page' %}active{% endif %}">🗺️ Map</a>
+    <a href="{{ url_for('quiz') }}"             class="{% if request.endpoint=='quiz' %}active{% endif %}">🧠 Quiz</a>
+    <a href="{{ url_for('video_assistant') }}"  class="{% if request.endpoint=='video_assistant' %}active{% endif %}">📹 Video AI</a>
+  </div>
+  <div class="nav-user">
+    <div class="nav-avatar">{{ session.user_name[0]|upper if session.user_name else 'U' }}</div>
+    <span style="font-size:.82rem;color:var(--text-secondary)">{{ session.user_name }}</span>
+    <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+  </div>
+</nav>
+{% endif %}
+
+<div class="{% if session.user_id %}page-wrapper{% endif %}">
+  <div class="container-main">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+// Close flash on click
+document.querySelectorAll('.flash-alert').forEach(el=>{
+  el.style.cursor='pointer';
+  el.addEventListener('click',()=>el.remove());
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">📱</div>
+    <h1 class="auth-title">Verify Mobile</h1>
+    <p class="auth-subtitle">Enter the 6-digit OTP sent to your mobile number</p>
+
+    <form method="POST" action="{{ url_for('verify_otp') }}">
+      <div style="margin-bottom:1.5rem">
+        <label class="form-label-custom">One-Time Password (OTP)</label>
+        <input type="text" name="otp" class="form-control-custom"
+               placeholder="Enter 6-digit OTP"
+               maxlength="6" pattern="[0-9]{6}"
+               style="font-size:1.4rem;letter-spacing:.5rem;text-align:center;font-weight:700"
+               autofocus required/>
+      </div>
+
+      <div style="background:rgba(124,58,237,0.1);border:1px solid var(--border);border-radius:10px;padding:.85rem;margin-bottom:1.25rem">
+        <p style="font-size:.8rem;color:var(--text-secondary);line-height:1.6">
+          💡 <strong>Demo Mode:</strong> If Twilio is not configured, the OTP is displayed in the server console/terminal.
+          Check the terminal window where you ran <code style="color:var(--primary-light)">python app.py</code>.
+        </p>
+      </div>
+
+      <button type="submit" class="btn-primary-custom" style="width:100%;justify-content:center">
+        ✅ Verify OTP
+      </button>
+    </form>
+
+    <div style="margin-top:1.25rem;text-align:center">
+      <a href="{{ url_for('register') }}" class="btn-outline-custom" style="font-size:.82rem">
+        ← Back to Registration
+      </a>
+    </div>
+
+    <!-- OTP digit auto-focus helper -->
+    <p style="margin-top:1.25rem;font-size:.72rem;color:var(--text-muted);text-align:center">
+      OTP is valid for 10 minutes.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Legal Awareness Quiz{% endblock %}
+{% block content %}
+<div style="max-width:800px;margin:0 auto">
+  <h1 class="page-title">🧠 Legal Awareness Quiz</h1>
+  <p class="page-subtitle">Test your knowledge of Indian laws, FIR procedures, constitutional rights, and legal aid. Instant feedback on every answer.</p>
+
+  <!-- Progress Bar -->
+  <div class="glass-card" style="margin-bottom:1.5rem;padding:1rem 1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <span style="font-size:.82rem;color:var(--text-muted)">Question <span id="qNum">1</span> of <span id="qTotal">10</span></span>
+      <span style="font-size:.82rem;color:var(--primary-light)">Score: <span id="score">0</span> / <span id="answered">0</span></span>
+    </div>
+    <div style="background:rgba(255,255,255,0.07);border-radius:10px;height:8px;overflow:hidden">
+      <div id="progressBar" style="height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));border-radius:10px;width:0%;transition:width .5s ease"></div>
+    </div>
+  </div>
+
+  <!-- Question Card -->
+  <div id="quizArea">
+    <div class="glass-card" id="questionCard">
+      <div style="margin-bottom:1rem">
+        <span id="qCategory" class="badge-purple" style="font-size:.75rem;margin-bottom:.75rem;display:inline-block"></span>
+        <h2 id="questionText" style="font-size:1.05rem;font-weight:600;line-height:1.6;color:var(--text-primary)"></h2>
+      </div>
+      <div id="optionsContainer" style="margin-top:1rem"></div>
+      <div id="explanationBox" style="display:none;margin-top:1rem;padding:1rem;border-radius:10px;font-size:.85rem;line-height:1.6"></div>
+      <div style="margin-top:1.25rem;display:flex;justify-content:flex-end">
+        <button id="nextBtn" class="btn-primary-custom" onclick="nextQuestion()" style="display:none">Next Question →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="resultScreen" style="display:none">
+    <div class="glass-card glass-card-purple" style="text-align:center;padding:2.5rem">
+      <div id="resultEmoji" style="font-size:4rem;margin-bottom:1rem"></div>
+      <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:.5rem">Quiz Complete!</h2>
+      <div style="font-size:3rem;font-weight:900;color:var(--primary-light);margin:.75rem 0" id="finalScore"></div>
+      <p id="resultMsg" style="color:var(--text-muted);font-size:.95rem;margin-bottom:1.5rem"></p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn-primary-custom" onclick="restartQuiz()">🔄 Try Again</button>
+        <a href="{{ url_for('legal_acts') }}" class="btn-outline-custom">📜 Learn Laws</a>
+        <a href="{{ url_for('chatbot') }}" class="btn-outline-custom">🤖 Ask AI</a>
+      </div>
+    </div>
+    <!-- Score breakdown -->
+    <div class="glass-card" style="margin-top:1rem">
+      <h3 class="section-title">📊 Performance Breakdown</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;text-align:center">
+        <div style="background:rgba(16,185,129,0.1);border-radius:10px;padding:1rem">
+          <div style="font-size:1.8rem;font-weight:700;color:#10b981" id="correctCount">0</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">Correct</div>
+        </div>
+        <div style="background:rgba(239,68,68,0.1);border-radius:10px;padding:1rem">
+          <div style="font-size:1.8rem;font-weight:700;color:#ef4444" id="wrongCount">0</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">Wrong</div>
+        </div>
+        <div style="background:rgba(124,58,237,0.1);border-radius:10px;padding:1rem">
+          <div style="font-size:1.8rem;font-weight:700;color:var(--primary-light)" id="pctCount">0%</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">Accuracy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const QUESTIONS = [
+  {q:"Under which section of CrPC can a Magistrate order police to investigate a case when FIR is refused?",
+   opts:["Section 154","Section 156(3)","Section 161","Section 173"],
+   ans:1,cat:"CrPC",
+   exp:"Section 156(3) CrPC allows a Magistrate to direct the police to register an FIR and investigate if police refuse to do so."},
+  {q:"What is the toll-free helpline number for NALSA (National Legal Services Authority)?",
+   opts:["1800","15100","100","1091"],
+   ans:1,cat:"Legal Aid",
+   exp:"NALSA's toll-free helpline is 15100. It provides free legal aid to eligible citizens including those with income below ₹1 lakh per year."},
+  {q:"Under which Article of the Constitution is the Right to Life and Personal Liberty guaranteed?",
+   opts:["Article 14","Article 19","Article 21","Article 32"],
+   ans:2,cat:"Constitution",
+   exp:"Article 21 of the Indian Constitution guarantees the Right to Life and Personal Liberty. It is one of the most fundamental rights."},
+  {q:"What is a 'Zero FIR'?",
+   opts:["An FIR filed at zero cost","An FIR filed at any police station regardless of jurisdiction","An FIR with no accused named","An online FIR"],
+   ans:1,cat:"FIR",
+   exp:"A Zero FIR can be filed at ANY police station, regardless of where the crime occurred. The station must then transfer it to the appropriate station."},
+  {q:"Within how many hours must an arrested person be produced before a Magistrate?",
+   opts:["12 hours","24 hours","48 hours","72 hours"],
+   ans:1,cat:"Arrest Rights",
+   exp:"Section 57 CrPC and Article 22 of the Constitution require police to produce an arrested person before a Magistrate within 24 hours."},
+  {q:"Which act provides protection to children from sexual offences?",
+   opts:["IPC Section 376","DV Act 2005","POCSO Act 2012","JJ Act 2015"],
+   ans:2,cat:"Child Rights",
+   exp:"The Protection of Children from Sexual Offences (POCSO) Act, 2012 provides strict protection against sexual abuse of children below 18 years."},
+  {q:"What is the national helpline number for reporting cyber crime financial fraud?",
+   opts:["100","1930","1091","14433"],
+   ans:1,cat:"Cyber Crime",
+   exp:"1930 is the National Cyber Crime helpline. For financial fraud, calling 1930 immediately increases the chances of money recovery."},
+  {q:"Under the Right to Information Act (RTI), what is the fee to file an RTI application?",
+   opts:["₹50","₹100","₹10","Free"],
+   ans:2,cat:"RTI",
+   exp:"The RTI application fee is just ₹10. BPL card holders are exempt from paying any fee. RTI can also be filed online at rtionline.gov.in."},
+  {q:"Which IPC section deals with cruelty by husband or his relatives (dowry harassment)?",
+   opts:["IPC 302","IPC 420","IPC 498A","IPC 354"],
+   ans:2,cat:"Women's Rights",
+   exp:"IPC Section 498A deals with cruelty by husband or his relatives towards a woman, including dowry-related harassment and mental/physical cruelty."},
+  {q:"Article 39A of the Constitution relates to which citizen right?",
+   opts:["Right to Education","Right to Free Legal Aid","Right to Vote","Right to Information"],
+   ans:1,cat:"Legal Aid",
+   exp:"Article 39A is a Directive Principle that mandates the State to ensure equal justice and free legal aid for all citizens, especially the poor."},
+];
+
+let current = 0, score = 0, correct = 0, wrong = 0;
+const shuffled = [...QUESTIONS].sort(()=>Math.random()-.5);
+
+function loadQuestion() {
+  if (current >= shuffled.length) { showResult(); return; }
+  const q = shuffled[current];
+  document.getElementById('qNum').textContent = current + 1;
+  document.getElementById('qTotal').textContent = shuffled.length;
+  document.getElementById('qCategory').textContent = q.cat;
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('progressBar').style.width = `${(current/shuffled.length)*100}%`;
+  document.getElementById('explanationBox').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-option';
+    div.textContent = `${String.fromCharCode(65+i)}. ${opt}`;
+    div.onclick = () => selectAnswer(i, q.ans, q.exp);
+    container.appendChild(div);
+  });
+}
+
+function selectAnswer(selected, correct_idx, explanation) {
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(o => o.classList.add('disabled'));
+  opts[correct_idx].classList.add('correct');
+  document.getElementById('answered').textContent = current + 1;
+
+  const expBox = document.getElementById('explanationBox');
+  if (selected === correct_idx) {
+    score++; correct++;
+    document.getElementById('score').textContent = score;
+    expBox.style.background = 'rgba(16,185,129,0.08)';
+    expBox.style.border = '1px solid rgba(16,185,129,0.3)';
+    expBox.innerHTML = `<span style="color:#10b981;font-weight:600">✅ Correct!</span> ${explanation}`;
+  } else {
+    wrong++;
+    opts[selected].classList.add('wrong');
+    expBox.style.background = 'rgba(239,68,68,0.07)';
+    expBox.style.border = '1px solid rgba(239,68,68,0.3)';
+    expBox.innerHTML = `<span style="color:#ef4444;font-weight:600">❌ Incorrect.</span> ${explanation}`;
+  }
+  expBox.style.display = 'block';
+  document.getElementById('nextBtn').style.display = 'inline-flex';
+}
+
+function nextQuestion() { current++; loadQuestion(); }
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+  const pct = Math.round((score/shuffled.length)*100);
+  document.getElementById('finalScore').textContent = `${score} / ${shuffled.length}`;
+  document.getElementById('correctCount').textContent = correct;
+  document.getElementById('wrongCount').textContent = wrong;
+  document.getElementById('pctCount').textContent = `${pct}%`;
+  let emoji, msg;
+  if (pct >= 80) { emoji='🏆'; msg='Excellent! You have strong legal awareness. Keep up the great work!'; }
+  else if (pct >= 60) { emoji='👍'; msg='Good performance! Review the missed topics using our Laws & Chatbot sections.'; }
+  else if (pct >= 40) { emoji='📚'; msg='Fair result. We recommend reading the Indian Laws section to strengthen your knowledge.'; }
+  else { emoji='🌱'; msg='Keep learning! Visit our AI Chatbot and Legal Acts sections to improve your legal awareness.'; }
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultMsg').textContent = msg;
+  document.getElementById('progressBar').style.width = '100%';
+}
+
+function restartQuiz() {
+  current = 0; score = 0; correct = 0; wrong = 0;
+  shuffled.sort(()=>Math.random()-.5);
+  document.getElementById('score').textContent = 0;
+  document.getElementById('answered').textContent = 0;
+  document.getElementById('quizArea').style.display = 'block';
+  document.getElementById('resultScreen').style.display = 'none';
+  loadQuestion();
+}
+
+loadQuestion();
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">⚖️</div>
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-subtitle">Login to your Legal Aid Portal account</p>
+
+    <form method="POST" action="{{ url_for('login') }}" autocomplete="off">
+      <div style="margin-bottom:1rem">
+        <label class="form-label-custom">Email or Mobile Number</label>
+        <input type="text" name="email" class="form-control-custom" placeholder="Enter email or 10-digit mobile" required/>
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <label class="form-label-custom">Password</label>
+        <input type="password" name="password" class="form-control-custom" placeholder="Enter your password" required/>
+      </div>
+      <button type="submit" class="btn-primary-custom" style="width:100%;justify-content:center">
+        🔐 Login
+      </button>
+    </form>
+
+    <div style="margin-top:1.5rem;text-align:center">
+      <p style="color:var(--text-muted);font-size:.85rem">
+        Don't have an account?
+        <a href="{{ url_for('register') }}" style="color:var(--primary-light);font-weight:600">Register here</a>
+      </p>
+    </div>
+
+    <div style="margin-top:1.5rem;padding:1rem;background:rgba(124,58,237,0.1);border-radius:10px;border:1px solid var(--border)">
+      <p style="font-size:.75rem;color:var(--text-muted);text-align:center;margin-bottom:.5rem">⚠️ Demo Credentials</p>
+      <p style="font-size:.78rem;color:var(--text-secondary);text-align:center">Register a new account to get started.<br>OTP will be shown in the server console (demo mode).</p>
+    </div>
+
+    <p style="margin-top:1.25rem;font-size:.72rem;color:var(--text-muted);text-align:center;line-height:1.5">
+      This platform provides legal awareness only. It does not replace professional legal advice.
+    </p>
+  </div>
+</div>
+{% endblock %}

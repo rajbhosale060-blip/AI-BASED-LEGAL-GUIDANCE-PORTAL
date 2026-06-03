@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Case Analyzer{% endblock %}
+{% block content %}
+<h1 class="page-title">📂 Case Analyzer</h1>
+<p class="page-subtitle">Describe your situation and get instant structured legal analysis with case type, applicable laws, and guidance.</p>
+
+<div style="display:grid;grid-template-columns:1fr 360px;gap:1.5rem;align-items:start">
+
+  <!-- Main Input -->
+  <div>
+    <div class="glass-card" style="margin-bottom:1.5rem">
+      <h3 class="section-title">📝 Describe Your Case</h3>
+      <textarea id="caseInput" class="form-control-custom" rows="7"
+        placeholder="Describe your situation in detail. For example: 'My neighbour forcefully entered my house at night, threatened me, and stole valuables worth ₹50,000. The local police are refusing to register my complaint...'
+        
+The more detail you provide, the better the analysis."></textarea>
+      <div style="margin-top:1rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+        <button class="btn-primary-custom" onclick="analyzeCase()">
+          🔍 Analyze Case
+        </button>
+        <button class="btn-outline-custom" onclick="clearCase()">🗑️ Clear</button>
+        <span id="wordCount" style="font-size:.78rem;color:var(--text-muted);margin-left:auto">0 words</span>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultSection" style="display:none">
+      <!-- Analyzing loader -->
+      <div id="loadingDiv" class="glass-card" style="text-align:center;padding:2rem;display:none">
+        <div class="typing-dots" style="justify-content:center;margin-bottom:.75rem">
+          <span></span><span></span><span></span>
+        </div>
+        <p style="color:var(--text-muted)">Analyzing your case...</p>
+      </div>
+
+      <!-- Result card -->
+      <div id="resultCard" class="glass-card" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+          <h3 class="section-title" style="margin-bottom:0">📋 Analysis Result</h3>
+          <div id="severityBadge"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+          <div style="background:rgba(124,58,237,0.1);border-radius:10px;padding:1rem">
+            <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Case Type</div>
+            <div id="caseType" style="font-weight:700;color:var(--primary-light);font-size:1rem"></div>
+          </div>
+          <div style="background:rgba(16,185,129,0.08);border-radius:10px;padding:1rem">
+            <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Legal Area</div>
+            <div id="legalArea" style="font-weight:600;color:#10b981;font-size:.9rem"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:1.25rem">
+          <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">📌 Applicable Legal Sections</div>
+          <div id="legalSections"></div>
+        </div>
+
+        <div style="margin-bottom:1.25rem">
+          <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">🔑 Key Terms Detected</div>
+          <div id="keywords"></div>
+        </div>
+
+        <div id="adviceBox" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:1rem">
+          <div style="font-size:.8rem;color:var(--accent);font-weight:600;margin-bottom:.4rem">💡 Immediate Advice</div>
+          <div id="adviceText" style="font-size:.87rem;color:var(--text-secondary);line-height:1.6"></div>
+        </div>
+
+        <div style="margin-top:1rem;padding:.75rem;background:rgba(255,255,255,0.03);border-radius:8px;font-size:.75rem;color:var(--text-muted)">
+          ⚠️ This analysis is AI-generated for awareness only. Please consult a qualified lawyer for legal proceedings. Free legal aid: <strong>15100</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div style="display:flex;flex-direction:column;gap:1rem">
+    <div class="glass-card">
+      <h3 class="section-title">💡 Tips for Better Analysis</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:.6rem">
+        {% for tip in ['Include who, what, when, where','Mention any evidence you have','Note if FIR was refused','Include any injuries or financial loss','Mention prior incidents if any','State the relationship to accused'] %}
+        <li style="font-size:.82rem;color:var(--text-secondary);display:flex;gap:.5rem">
+          <span style="color:var(--primary-light)">✓</span> {{ tip }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {% if past_cases %}
+    <div class="glass-card">
+      <h3 class="section-title">🕐 Recent Cases</h3>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        {% for c in past_cases %}
+        <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:.7rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
+            <span class="badge-purple" style="font-size:.7rem">{{ c.case_type or 'Unknown' }}</span>
+            {% if c.severity == 'High' %}<span class="badge-red" style="font-size:.7rem">High</span>
+            {% elif c.severity == 'Medium' %}<span class="badge-yellow" style="font-size:.7rem">Medium</span>
+            {% else %}<span class="badge-green" style="font-size:.7rem">Low</span>{% endif %}
+          </div>
+          <p style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.description[:60] }}...</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="glass-card glass-card-purple">
+      <h3 class="section-title">📞 Need Expert Help?</h3>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">For serious cases, contact NALSA for free legal representation.</p>
+      <div style="text-align:center;font-size:1.8rem;font-weight:800;color:var(--primary-light)">15100</div>
+      <div style="text-align:center;font-size:.75rem;color:var(--text-muted);margin-top:.25rem">NALSA Toll-Free</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const input = document.getElementById('caseInput');
+input.addEventListener('input', () => {
+  const words = input.value.trim().split(/\s+/).filter(w=>w).length;
+  document.getElementById('wordCount').textContent = `${words} words`;
+});
+
+function clearCase() {
+  input.value = '';
+  document.getElementById('wordCount').textContent = '0 words';
+  document.getElementById('resultSection').style.display = 'none';
+}
+
+async function analyzeCase() {
+  const desc = input.value.trim();
+  if (desc.length < 20) { alert('Please describe your case in at least 20 characters.'); return; }
+
+  document.getElementById('resultSection').style.display = 'block';
+  document.getElementById('loadingDiv').style.display = 'block';
+  document.getElementById('resultCard').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/analyze-case', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({description: desc})
+    });
+    const d = await res.json();
+    if (d.error) { alert(d.error); document.getElementById('resultSection').style.display='none'; return; }
+
+    document.getElementById('loadingDiv').style.display = 'none';
+    document.getElementById('resultCard').style.display = 'block';
+
+    document.getElementById('caseType').textContent = d.case_type;
+    document.getElementById('legalArea').textContent = d.legal_area;
+
+    const sv = d.severity;
+    const svBadge = document.getElementById('severityBadge');
+    svBadge.innerHTML = `<span class="badge-${sv==='High'?'red':sv==='Medium'?'yellow':'green'}" style="font-size:.85rem;padding:.35rem .9rem">
+      ${sv==='High'?'🚨':'⚠️'} ${sv} Priority</span>`;
+
+    document.getElementById('legalSections').innerHTML =
+      (d.relevant_sections||[]).map(s=>`<span class="legal-chip">${s}</span>`).join('');
+
+    document.getElementById('keywords').innerHTML =
+      (d.keywords||[]).map(k=>`<span class="badge-purple" style="margin:.15rem;display:inline-block">${k}</span>`).join('');
+
+    document.getElementById('adviceText').textContent = d.advice;
+  } catch(e) {
+    document.getElementById('loadingDiv').style.display = 'none';
+    alert('Error analyzing case. Please try again.');
+  }
+}
+</script>
+{% endblock %}
