@@ -30,13 +30,22 @@ from models.legal_reference import get_legal_acts, search_legal_acts
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'legal_aid_secret_2024_india')
 
+# Production session settings
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 UPLOAD_FOLDER    = os.path.join('static', 'uploads')
 ALLOWED_EXT      = {'png','jpg','jpeg','gif','pdf','mp4','avi','mov','doc','docx','txt'}
 app.config['UPLOAD_FOLDER']        = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH']   = 50 * 1024 * 1024
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-DB_PATH = 'database.db'
+# On Render, the filesystem is ephemeral — use /tmp for writable SQLite.
+# Locally (Windows / dev), use the project directory.
+if os.getenv('RENDER'):
+    DB_PATH = '/tmp/database.db'
+else:
+    DB_PATH = 'database.db'
 
 # ── DB helpers ─────────────────────────────────────────────────────────────────
 def get_db():
@@ -349,10 +358,13 @@ def interactive_map():
 def video_assistant():
     return render_template('video_assistant.html')
 
-# ── Run ────────────────────────────────────────────────────────────────────────
+# ── Initialize DB at import time (required for gunicorn / Render) ──────────────
+init_db()
+
+# ── Run (local development only — Render uses gunicorn via Procfile) ───────────
 if __name__ == '__main__':
-    init_db()
+    port = int(os.getenv('PORT', 5000))
     print("\n" + "="*55)
-    print("  AI Legal Aid Portal  |  http://localhost:5000")
+    print(f"  AI Legal Aid Portal  |  http://localhost:{port}")
     print("="*55 + "\n")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=port)
